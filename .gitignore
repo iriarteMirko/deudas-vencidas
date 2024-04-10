@@ -1,4 +1,7 @@
-.xlsx
+# Ignorar todos los archivos Excel
+*.xlsx
+*.xls
+*.xlsm
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
