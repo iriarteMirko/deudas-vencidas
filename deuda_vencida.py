@@ -140,7 +140,7 @@ def main():
         directorio_base = os.path.dirname(archivo_excel)
         base_path = archivo_excel
         resultado_path = directorio_base+"/DEUDAS_VENCIDAS.xlsx"
-    
+
     def seleccionar_dacxanalista():
         global dacxanalista_path
         archivo_excel = filedialog.askopenfilename(
@@ -149,45 +149,46 @@ def main():
             filetypes=(("Archivos de Excel", "*.xlsx"), ("Todos los archivos", "*.*"))
         )
         dacxanalista_path = archivo_excel
-    
-    ##### APP #####
-    app = CTk()
-    app.title("DV")
-    app.iconbitmap("icono.ico")
-    app.resizable(False, False)
-    set_appearance_mode("light")
-    
-    ##### MAIN FRAME #####
-    main_frame = CTkFrame(app)
-    main_frame.pack_propagate(0)
-    main_frame.pack(fill="both", expand=True)
-    
-    titulo = CTkLabel(main_frame, text="Deudas Vencidas", font=("Calibri",25,"bold"), text_color="black")
-    titulo.grid(row=0, column=0, columnspan=2, padx=(20,20), pady=(20, 0), sticky="nsew")
-    
-    ruta_base = CTkLabel(main_frame, text="BASE", font=("Calibri",15,"bold"), text_color="black")
-    ruta_base.grid(row=1, column=0, padx=(20,10), pady=(20, 0), sticky="nsew")
-    boton_seleccionar_ruta_base = CTkButton(
-        main_frame, text="Seleccionar", fg_color="gray", border_color="black", border_width=2,
-        font=("Calibri",15,"bold"), text_color="black", hover_color="red", width=15,
-        command=lambda: seleccionar_base())
-    boton_seleccionar_ruta_base.grid(row=2, column=0, padx=(20,10), pady=(0, 0), sticky="nsew")
-    
-    ruta_dacxa = CTkLabel(main_frame, text="DACxANALISTA", font=("Calibri",15,"bold"), text_color="black")
-    ruta_dacxa.grid(row=1, column=1, padx=(10,20), pady=(20, 0), sticky="nsew")
-    boton_seleccionar_ruta_dacxa = CTkButton(
-        main_frame, text="Seleccionar", fg_color="gray", border_color="black", border_width=2,
-        font=("Calibri",15,"bold"), text_color="black", hover_color="red", width=15,
-        command=lambda: seleccionar_dacxanalista())
-    boton_seleccionar_ruta_dacxa.grid(row=2, column=1, padx=(10,20), pady=(0, 0), sticky="nsew")
-    
-    boton_ejecutar = CTkButton(
-        main_frame, text="EJECUTAR", fg_color="gray", border_color="black", border_width=2,
-        font=("Calibri",20,"bold"), text_color="black", hover_color="red",
-        command=lambda: obtener_deudas_vencidas(base_path, dacxanalista_path, resultado_path))
-    boton_ejecutar.grid(row=3, column=0, columnspan=2, ipady=10, padx=(20,20), pady=(30, 20), sticky="nsew")
 
-    app.mainloop()
+    def app():
+        app = CTk()
+        app.title("DV")
+        app.iconbitmap("icono.ico")
+        app.resizable(False, False)
+        set_appearance_mode("light")
+        
+        main_frame = CTkFrame(app)
+        main_frame.pack_propagate(0)
+        main_frame.pack(fill="both", expand=True)
+        
+        titulo = CTkLabel(main_frame, text="Deudas Vencidas", font=("Calibri",25,"bold"), text_color="black")
+        titulo.grid(row=0, column=0, columnspan=2, padx=(20,20), pady=(20, 0), sticky="nsew")
+        
+        ruta_base = CTkLabel(main_frame, text="BASE", font=("Calibri",15,"bold"), text_color="black")
+        ruta_base.grid(row=1, column=0, padx=(20,10), pady=(20, 0), sticky="nsew")
+        boton_seleccionar_ruta_base = CTkButton(
+            main_frame, text="Seleccionar", fg_color="gray", border_color="black", border_width=2,
+            font=("Calibri",15,"bold"), text_color="black", hover_color="red", width=15,
+            command=lambda: seleccionar_base())
+        boton_seleccionar_ruta_base.grid(row=2, column=0, padx=(20,10), pady=(0, 0), sticky="nsew")
+        
+        ruta_dacxa = CTkLabel(main_frame, text="DACxANALISTA", font=("Calibri",15,"bold"), text_color="black")
+        ruta_dacxa.grid(row=1, column=1, padx=(10,20), pady=(20, 0), sticky="nsew")
+        boton_seleccionar_ruta_dacxa = CTkButton(
+            main_frame, text="Seleccionar", fg_color="gray", border_color="black", border_width=2,
+            font=("Calibri",15,"bold"), text_color="black", hover_color="red", width=15,
+            command=lambda: seleccionar_dacxanalista())
+        boton_seleccionar_ruta_dacxa.grid(row=2, column=1, padx=(10,20), pady=(0, 0), sticky="nsew")
+        
+        boton_ejecutar = CTkButton(
+            main_frame, text="EJECUTAR", fg_color="gray", border_color="black", border_width=2,
+            font=("Calibri",20,"bold"), text_color="black", hover_color="red",
+            command=lambda: obtener_deudas_vencidas(base_path, dacxanalista_path, resultado_path))
+        boton_ejecutar.grid(row=3, column=0, columnspan=2, ipady=10, padx=(20,20), pady=(30, 20), sticky="nsew")
+
+        app.mainloop()
+
+    app()
 
 if __name__ == "__main__":
     main()
