@@ -124,14 +124,15 @@ def main():
         os.startfile(resultado_path)
 
     def seleccionar_base():
-        global base_path
+        global base_path, resultado_path
         archivo_excel = filedialog.askopenfilename(
             initialdir="/",
             title="Seleccionar archivo BASE",
             filetypes=(("Archivos de Excel", "*.xlsx"), ("Todos los archivos", "*.*"))
         )
+        directorio_base = os.path.dirname(archivo_excel)
         base_path = archivo_excel
-        print("Ruta del archivo BASE:", base_path)
+        resultado_path = directorio_base+"/DEUDAS_VENCIDAS.xlsx"
     
     def seleccionar_dacxanalista():
         global dacxanalista_path
@@ -141,7 +142,7 @@ def main():
             filetypes=(("Archivos de Excel", "*.xlsx"), ("Todos los archivos", "*.*"))
         )
         dacxanalista_path = archivo_excel
-        print("Ruta del archivo DACxANALISTA:", dacxanalista_path)
+        print("Ruta del archivo DACxANALISTA: ", dacxanalista_path)
     
     ##### APP #####
     app = CTk()
@@ -179,8 +180,6 @@ def main():
         font=("Calibri",20,"bold"), text_color="black", hover_color="red",
         command=lambda: obtener_deudas_vencidas(base_path, dacxanalista_path, resultado_path))
     boton_ejecutar.grid(row=3, column=0, columnspan=2, ipady=10, padx=(20,20), pady=(30, 20), sticky="nsew")
-    
-    resultado_path = "resultado.xlsx"
 
     app.mainloop()
 
