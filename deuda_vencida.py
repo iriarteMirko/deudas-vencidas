@@ -132,6 +132,7 @@ def main():
             df_final["Código Pago"] = "33" + df_final["Área Ctrl"].str[-2:] + df_final["Cod Cliente"].astype(str)
             df_final = df_final[["Cod Cliente", "Razón Social", "Área Ctrl", "Producto", "Deuda Vencida", "Código Pago", "Días Morosidad"]]
             df_final["Deuda Vencida"] = df_final["Deuda Vencida"].astype(float)
+            df_final = df_final[df_final["Deuda Vencida"] != 0]
             df_final.to_excel(resultado_path, index=False)
             
             formatear_excel(resultado_path)
