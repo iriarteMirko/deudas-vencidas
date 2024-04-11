@@ -189,11 +189,12 @@ def main():
             ruta_base = datos[0][1]
             ruta_dacxa = datos[0][2]
             ruta_resultado = datos[0][3]
-            print(ruta_base)
-            print(ruta_dacxa)
-            print(ruta_resultado)
             if ruta_base == None or ruta_dacxa == None or ruta_resultado == None:
                 messagebox.showerror("Error", "Por favor, configure las rutas de los archivos.")
+            elif not os.path.exists(ruta_base):
+                messagebox.showerror("Error", "No se encontraró el archivo BASE en la ruta especificada.")
+            elif not os.path.exists(ruta_dacxa):
+                messagebox.showerror("Error", "No se encontraró el archivo DACxANALISTA en la ruta especificada.")
             else:
                 obtener_deudas_vencidas(ruta_base, ruta_dacxa, ruta_resultado)
         except Exception as ex:
