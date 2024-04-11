@@ -4,13 +4,19 @@ import warnings
 import os
 from openpyxl.styles import PatternFill, Border, Side, Alignment, Font
 from openpyxl.utils import get_column_letter
+from customtkinter import *
+from tkinter import messagebox
+from PIL import Image, ImageTk
+import customtkinter
 
 warnings.filterwarnings("ignore")
 
 def main():
+    def abrir_arcihvo(path):
+        os.startfile(path)
+
     def exportar_excel(df, path):
         df.to_excel(path, index=False)
-        os.startfile(path)
 
     def obtener_deudas_vencidas(base_path, dacxanalista_path, resultado_path):
         df_base = pd.read_excel(base_path)
@@ -122,12 +128,49 @@ def main():
         
         wb.save(excel_file)
 
+    ##### APP #####
+    app = CTk()
+    app.title("DV")
+    app.iconbitmap("icono.ico")
+    app.resizable(False, False)
+    set_appearance_mode("light")
+    
+    ##### MAIN FRAME #####
+    main_frame = CTkFrame(app)
+    main_frame.pack_propagate(0)
+    main_frame.pack(fill="both", expand=True)
+    
+    titulo = CTkLabel(main_frame, text="Deudas Vencidas", font=("Calibri",25,"bold"), text_color="black")
+    titulo.grid(row=0, column=0, columnspan=2, padx=(20,20), pady=(20, 0), sticky="nsew")
+    
+    ruta_base = CTkLabel(main_frame, text="BASE", font=("Calibri",15,"bold"), text_color="black")
+    ruta_base.grid(row=1, column=0, padx=(20,10), pady=(20, 0), sticky="nsew")
+    boton_seleccionar_ruta_base = CTkButton(
+        main_frame, text="Seleccionar", fg_color="gray", border_color="black", border_width=2,
+        font=("Calibri",15,"bold"), text_color="black", hover_color="red", width=15)
+    boton_seleccionar_ruta_base.grid(row=2, column=0, padx=(20,10), pady=(0, 0), sticky="nsew")
+    
+    ruta_dacxa = CTkLabel(main_frame, text="DACxANALISTA", font=("Calibri",15,"bold"), text_color="black")
+    ruta_dacxa.grid(row=1, column=1, padx=(10,20), pady=(20, 0), sticky="nsew")
+    boton_seleccionar_ruta_dacxa = CTkButton(
+        main_frame, text="Seleccionar", fg_color="gray", border_color="black", border_width=2,
+        font=("Calibri",15,"bold"), text_color="black", hover_color="red", width=15)
+    boton_seleccionar_ruta_dacxa.grid(row=2, column=1, padx=(10,20), pady=(0, 0), sticky="nsew")
+    
+    boton_ejecutar = CTkButton(
+        main_frame, text="EJECUTAR", fg_color="gray", border_color="black", border_width=2,
+        font=("Calibri",20,"bold"), text_color="black", hover_color="red")
+    boton_ejecutar.grid(row=3, column=0, columnspan=2, ipady=10, padx=(20,20), pady=(30, 20), sticky="nsew")
+    
     base_path = "BASE.xlsx"
     dacxanalista_path = "Nuevo_DACxANALISTA.xlsx"
     resultado_path = "resultado.xlsx"
 
     obtener_deudas_vencidas(base_path, dacxanalista_path, resultado_path)
     formatear_excel(resultado_path)
+    abrir_arcihvo(resultado_path)
+    
+    app.mainloop()
 
 if __name__ == "__main__":
     main()
