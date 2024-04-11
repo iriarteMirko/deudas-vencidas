@@ -6,6 +6,7 @@ from openpyxl.styles import PatternFill, Border, Side, Alignment, Font
 from openpyxl.utils import get_column_letter
 from tkinter import messagebox
 from customtkinter import *
+from conexion import *
 
 warnings.filterwarnings("ignore")
 
@@ -131,7 +132,6 @@ def main():
             messagebox.showerror("Error", "Algo salió mal. Por favor, intente nuevamente.")
 
     def seleccionar_base():
-        global base_path, resultado_path
         archivo_excel = filedialog.askopenfilename(
             initialdir="/",
             title="Seleccionar archivo BASE",
@@ -140,15 +140,64 @@ def main():
         directorio_base = os.path.dirname(archivo_excel)
         base_path = archivo_excel
         resultado_path = directorio_base+"/DEUDAS_VENCIDAS.xlsx"
+        
+        query1 = ("""UPDATE RUTAS
+                    SET BASE == '"""+base_path+"""'
+                    WHERE ID == 1""")
+        query2 = ("""UPDATE RUTAS
+                    SET RESULTADO == '"""+resultado_path+"""'
+                    WHERE ID == 1""")
+        conexion = conexionSQLite()
+        try:
+            cursor = conexion.cursor()
+            cursor.execute(query1)
+            conexion.commit()
+            cursor.execute(query2)
+            conexion.commit()
+        except Exception as ex:
+            messagebox.showerror("Error", str(ex))
+        finally:
+            cursor.close()
+            conexion.close
 
     def seleccionar_dacxanalista():
-        global dacxanalista_path
         archivo_excel = filedialog.askopenfilename(
             initialdir="/",
             title="Seleccionar archivo DACxANALISTA",
             filetypes=(("Archivos de Excel", "*.xlsx"), ("Todos los archivos", "*.*"))
         )
         dacxanalista_path = archivo_excel
+        
+        query = ("""UPDATE RUTAS
+                    SET DACXANALISTA == '"""+dacxanalista_path+"""'
+                    WHERE ID == 1""")
+        conexion = conexionSQLite()
+        try:
+            cursor = conexion.cursor()
+            cursor.execute(query)
+            conexion.commit()
+        except Exception as ex:
+            messagebox.showerror("Error", str(ex))
+        finally:
+            cursor.close()
+            conexion.close
+
+    def ejecutar():
+        query = ("""SELECT * FROM RUTAS WHERE ID == 1""")
+        try:
+            datos = ejecutar_query(query)
+            ruta_base = datos[0][1]
+            ruta_dacxa = datos[0][2]
+            ruta_resultado = datos[0][3]
+            print(ruta_base)
+            print(ruta_dacxa)
+            print(ruta_resultado)
+            if ruta_base == None or ruta_dacxa == None or ruta_resultado == None:
+                messagebox.showerror("Error", "Por favor, configure las rutas de los archivos.")
+            else:
+                obtener_deudas_vencidas(ruta_base, ruta_dacxa, ruta_resultado)
+        except Exception as ex:
+            messagebox.showerror("Error", str(ex))
 
     def app():
         app = CTk()
@@ -183,7 +232,7 @@ def main():
         boton_ejecutar = CTkButton(
             main_frame, text="EJECUTAR", fg_color="gray", border_color="black", border_width=2,
             font=("Calibri",20,"bold"), text_color="black", hover_color="red",
-            command=lambda: obtener_deudas_vencidas(base_path, dacxanalista_path, resultado_path))
+            command=lambda: ejecutar())
         boton_ejecutar.grid(row=3, column=0, columnspan=2, ipady=10, padx=(20,20), pady=(30, 20), sticky="nsew")
 
         app.mainloop()
