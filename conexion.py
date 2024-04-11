@@ -1,8 +1,9 @@
 import sqlite3 as sql
+from deuda_vencida import resource_path
 
 def conexionSQLite():
     try:
-        conexion = sql.connect("database/db.db")
+        conexion = sql.connect(resource_path("database/db.db"))
         return conexion
 
     except sql.Error as ex:

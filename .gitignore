@@ -1,4 +1,6 @@
-# Ignorar todos los archivos Excel
+# Ignorar archivos:
+database/
+*.txt
 *.xlsx
 *.xls
 *.xlsm

@@ -1,6 +1,7 @@
 import pandas as pd
 import openpyxl
 import warnings
+import sys
 import os
 from openpyxl.styles import PatternFill, Border, Side, Alignment, Font
 from openpyxl.utils import get_column_letter
@@ -9,6 +10,14 @@ from customtkinter import *
 from conexion import *
 
 warnings.filterwarnings("ignore")
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS2
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 def main():
     def formatear_excel(excel_file):
@@ -203,7 +212,7 @@ def main():
     def app():
         app = CTk()
         app.title("DV")
-        app.iconbitmap("icono.ico")
+        app.iconbitmap(resource_path("icono.ico"))
         app.resizable(False, False)
         set_appearance_mode("light")
         
