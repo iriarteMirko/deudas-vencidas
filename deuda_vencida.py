@@ -6,17 +6,40 @@ from openpyxl.styles import PatternFill, Border, Side, Alignment, Font
 from openpyxl.utils import get_column_letter
 from customtkinter import *
 from tkinter import messagebox
-from PIL import Image, ImageTk
 import customtkinter
 
 warnings.filterwarnings("ignore")
 
 def main():
-    def abrir_arcihvo(path):
-        os.startfile(path)
-
-    def exportar_excel(df, path):
-        df.to_excel(path, index=False)
+    def formatear_excel(excel_file):
+        wb = openpyxl.load_workbook(excel_file)
+        ws = wb.active
+        ws.title = "DETALLE"
+        
+        fill = PatternFill(start_color="FFC000", end_color="FFC000", fill_type="solid")
+        font_header = Font(name="Calibri", size=11, color="000000", bold=True)
+        font_cells = Font(name="Calibri", size=11)
+        border = Border(left=Side(style="thin"), 
+                        right=Side(style="thin"), 
+                        top=Side(style="thin"), 
+                        bottom=Side(style="thin"))
+        alignment = Alignment(vertical="center")
+        
+        for row in ws.iter_rows():
+            for cell in row:
+                cell.border = border
+                cell.alignment = alignment
+                cell.font = font_cells
+                if cell.row == 1:
+                    cell.fill = fill
+                    cell.font = font_header
+                    cell.alignment = Alignment(horizontal="center")
+        
+        column_widths = [10.5, 40, 8.5, 23, 13.5, 12, 14]
+        for i, column_width in enumerate(column_widths):
+            ws.column_dimensions[get_column_letter(i+1)].width = column_width
+        
+        wb.save(excel_file)
 
     def obtener_deudas_vencidas(base_path, dacxanalista_path, resultado_path):
         df_base = pd.read_excel(base_path)
@@ -95,39 +118,31 @@ def main():
         df_final["Código Pago"] = "33" + df_final["Área Ctrl"].str[-2:] + df_final["Cod Cliente"].astype(str)
         df_final = df_final[["Cod Cliente", "Razón Social", "Área Ctrl", "Producto", "Deuda Vencida", "Código Pago", "Días Morosidad"]]
         df_final["Deuda Vencida"] = df_final["Deuda Vencida"].astype(float)
+        df_final.to_excel(resultado_path, index=False)
         
-        exportar_excel(df_final, resultado_path)
+        formatear_excel(resultado_path)
+        os.startfile(resultado_path)
 
-    def formatear_excel(excel_file):
-        wb = openpyxl.load_workbook(excel_file)
-        ws = wb.active
-        ws.title = "DETALLE"
-        
-        fill = PatternFill(start_color="FFC000", end_color="FFC000", fill_type="solid")
-        font_header = Font(name="Calibri", size=11, color="000000", bold=True)
-        font_cells = Font(name="Calibri", size=11)
-        border = Border(left=Side(style="thin"), 
-                        right=Side(style="thin"), 
-                        top=Side(style="thin"), 
-                        bottom=Side(style="thin"))
-        alignment = Alignment(vertical="center")
-        
-        for row in ws.iter_rows():
-            for cell in row:
-                cell.border = border
-                cell.alignment = alignment
-                cell.font = font_cells
-                if cell.row == 1:
-                    cell.fill = fill
-                    cell.font = font_header
-                    cell.alignment = Alignment(horizontal="center")
-        
-        column_widths = [10.5, 40, 8.5, 23, 13.5, 12, 14]
-        for i, column_width in enumerate(column_widths):
-            ws.column_dimensions[get_column_letter(i+1)].width = column_width
-        
-        wb.save(excel_file)
-
+    def seleccionar_base():
+        global base_path
+        archivo_excel = filedialog.askopenfilename(
+            initialdir="/",
+            title="Seleccionar archivo BASE",
+            filetypes=(("Archivos de Excel", "*.xlsx"), ("Todos los archivos", "*.*"))
+        )
+        base_path = archivo_excel
+        print("Ruta del archivo BASE:", base_path)
+    
+    def seleccionar_dacxanalista():
+        global dacxanalista_path
+        archivo_excel = filedialog.askopenfilename(
+            initialdir="/",
+            title="Seleccionar archivo DACxANALISTA",
+            filetypes=(("Archivos de Excel", "*.xlsx"), ("Todos los archivos", "*.*"))
+        )
+        dacxanalista_path = archivo_excel
+        print("Ruta del archivo DACxANALISTA:", dacxanalista_path)
+    
     ##### APP #####
     app = CTk()
     app.title("DV")
@@ -147,29 +162,26 @@ def main():
     ruta_base.grid(row=1, column=0, padx=(20,10), pady=(20, 0), sticky="nsew")
     boton_seleccionar_ruta_base = CTkButton(
         main_frame, text="Seleccionar", fg_color="gray", border_color="black", border_width=2,
-        font=("Calibri",15,"bold"), text_color="black", hover_color="red", width=15)
+        font=("Calibri",15,"bold"), text_color="black", hover_color="red", width=15,
+        command=lambda: seleccionar_base())
     boton_seleccionar_ruta_base.grid(row=2, column=0, padx=(20,10), pady=(0, 0), sticky="nsew")
     
     ruta_dacxa = CTkLabel(main_frame, text="DACxANALISTA", font=("Calibri",15,"bold"), text_color="black")
     ruta_dacxa.grid(row=1, column=1, padx=(10,20), pady=(20, 0), sticky="nsew")
     boton_seleccionar_ruta_dacxa = CTkButton(
         main_frame, text="Seleccionar", fg_color="gray", border_color="black", border_width=2,
-        font=("Calibri",15,"bold"), text_color="black", hover_color="red", width=15)
+        font=("Calibri",15,"bold"), text_color="black", hover_color="red", width=15,
+        command=lambda: seleccionar_dacxanalista())
     boton_seleccionar_ruta_dacxa.grid(row=2, column=1, padx=(10,20), pady=(0, 0), sticky="nsew")
     
     boton_ejecutar = CTkButton(
         main_frame, text="EJECUTAR", fg_color="gray", border_color="black", border_width=2,
-        font=("Calibri",20,"bold"), text_color="black", hover_color="red")
+        font=("Calibri",20,"bold"), text_color="black", hover_color="red",
+        command=lambda: obtener_deudas_vencidas(base_path, dacxanalista_path, resultado_path))
     boton_ejecutar.grid(row=3, column=0, columnspan=2, ipady=10, padx=(20,20), pady=(30, 20), sticky="nsew")
     
-    base_path = "BASE.xlsx"
-    dacxanalista_path = "Nuevo_DACxANALISTA.xlsx"
     resultado_path = "resultado.xlsx"
 
-    obtener_deudas_vencidas(base_path, dacxanalista_path, resultado_path)
-    formatear_excel(resultado_path)
-    abrir_arcihvo(resultado_path)
-    
     app.mainloop()
 
 if __name__ == "__main__":
