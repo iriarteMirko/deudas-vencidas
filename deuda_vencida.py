@@ -1,0 +1,133 @@
+import pandas as pd
+import openpyxl
+import warnings
+import os
+from openpyxl.styles import PatternFill, Border, Side, Alignment, Font
+from openpyxl.utils import get_column_letter
+
+warnings.filterwarnings("ignore")
+
+def main():
+    def exportar_excel(df, path):
+        df.to_excel(path, index=False)
+        os.startfile(path)
+
+    def obtener_deudas_vencidas(base_path, dacxanalista_path, resultado_path):
+        df_base = pd.read_excel(base_path)
+        df_base = df_base.iloc[:, 3:]
+        df_base = df_base.iloc[7:, :]
+        df_base = df_base.rename(columns=df_base.iloc[0])
+        df_base = df_base[1:]
+        df_base = df_base.reset_index(drop=True)
+        df_base = df_base.dropna(subset=["Cuenta","ACC"])
+        df_base = df_base.reset_index(drop=True)
+        columnas_deseadas = ["ACC", "Cuenta", "Demora", "     Importe en ML"]
+        df_base = df_base[columnas_deseadas]
+        df_base = df_base.rename(columns={"     Importe en ML": "Importe"})
+        df_base["Demora"] = df_base["Demora"].astype("Int64")
+        df_base["Importe"] = df_base["Importe"].astype(float)
+        # Condition 1
+        df_base["Status"] = df_base["Importe"].apply(lambda x: "DEUDA" if x > 0 else "SALDOS A FAVOR")
+        # Condition 2
+        df_base["Tipo Deuda"] = df_base["Demora"].apply(lambda x: "CORRIENTE" if x <= 0 else "VENCIDA")
+        # Condition 3
+        df_base["Saldo Final"] = df_base.apply(lambda row: row["Importe"] if (row["Status"] == "DEUDA" and row["Tipo Deuda"] == "VENCIDA") else (row["Importe"] if row["Status"] == "SALDOS A FAVOR" else "NO"), axis=1)
+        df_base = df_base[df_base["Saldo Final"] != "NO"]
+        df_base = df_base.sort_values(by=["Cuenta"], ascending=[True])
+        df_base = df_base.sort_values(by=["ACC"], ascending=[True])
+        df_base = df_base.sort_values(by=["Demora"], ascending=[False])
+        df_base = df_base.reset_index(drop=True)
+        
+        ultima_fila = df_base.shape[0]
+        for i in range(ultima_fila):
+            if df_base.loc[i, "Status"] == "DEUDA":
+                saldoDeuda = df_base.loc[i, "Saldo Final"]
+                for j in range(ultima_fila):
+                    if (
+                        df_base.loc[i, "Cuenta"]    == df_base.loc[j, "Cuenta"] and 
+                        df_base.loc[i, "ACC"]       == df_base.loc[j, "ACC"]    and 
+                        df_base.loc[j, "Status"]    == "SALDOS A FAVOR"
+                        ):
+                        saldoFavor = df_base.loc[j, "Saldo Final"]
+                        montoCompensar = min(saldoDeuda, abs(saldoFavor))
+                        df_base.loc[i, "Saldo Final"] = saldoDeuda - montoCompensar
+                        df_base.loc[j, "Saldo Final"] = saldoFavor + montoCompensar
+                        saldoDeuda = df_base.loc[i, "Saldo Final"]
+                        
+        df_base = df_base[(df_base["Tipo Deuda"] == "VENCIDA") & (df_base["Status"] == "DEUDA")]
+        df_base = df_base.reset_index(drop=True)
+        
+        grouped_df = df_base.groupby(["Cuenta", "ACC"]).agg({"Demora": "max", "Saldo Final": "sum"})
+        
+        df_final = grouped_df.reset_index()[["Cuenta", "ACC", "Saldo Final", "Demora"]]
+        df_final = df_final.rename(columns={"Cuenta":"Cod Cliente", "ACC":"Área Ctrl", "Saldo Final":"Deuda Vencida", "Demora":"Días Morosidad"})
+        
+        df_dacxanalista = pd.read_excel(dacxanalista_path, sheet_name="Base_NUEVA")
+        
+        df_final = df_final.merge(df_dacxanalista[["DEUDOR", "NOMBRE"]], left_on="Cod Cliente", right_on="DEUDOR", how="left")
+        df_final = df_final.rename(columns={"NOMBRE": "Razón Social"})
+        df_final = df_final.drop(columns=["DEUDOR"])
+        
+        areas_de_control = {
+            "PE01": "Post-Pago",
+            "PE02": "Pre-Pago",
+            "PE03": "Tiempo Aire",
+            "PE04": "Reintegro",
+            "PE05": "Reestructura",
+            "PE07": "Contado / Administrativas",
+            "PE09": "Cargos Admtivos / Otros",
+            "PE10": "Sim Card",
+            "PE11": "Recarga Prepago",
+            "PE12": "Recarga Física",
+            "PE13": "Arrendamiento",
+            "PE14": "Tel.Fija Inalamb.",
+            "PE15": "Prendas",
+            "PE16": "DTH",
+            "PE17": "HFC"
+        }
+        df_final["Producto"] = df_final["Área Ctrl"].apply(lambda x: areas_de_control[x])
+        df_final["Código Pago"] = "33" + df_final["Área Ctrl"].str[-2:] + df_final["Cod Cliente"].astype(str)
+        df_final = df_final[["Cod Cliente", "Razón Social", "Área Ctrl", "Producto", "Deuda Vencida", "Código Pago", "Días Morosidad"]]
+        df_final["Deuda Vencida"] = df_final["Deuda Vencida"].astype(float)
+        
+        exportar_excel(df_final, resultado_path)
+
+    def formatear_excel(excel_file):
+        wb = openpyxl.load_workbook(excel_file)
+        ws = wb.active
+        ws.title = "DETALLE"
+        
+        fill = PatternFill(start_color="FFC000", end_color="FFC000", fill_type="solid")
+        font_header = Font(name="Calibri", size=11, color="000000", bold=True)
+        font_cells = Font(name="Calibri", size=11)
+        border = Border(left=Side(style="thin"), 
+                        right=Side(style="thin"), 
+                        top=Side(style="thin"), 
+                        bottom=Side(style="thin"))
+        alignment = Alignment(vertical="center")
+        
+        for row in ws.iter_rows():
+            for cell in row:
+                cell.border = border
+                cell.alignment = alignment
+                cell.font = font_cells
+                if cell.row == 1:
+                    cell.fill = fill
+                    cell.font = font_header
+                    cell.alignment = Alignment(horizontal="center")
+        
+        column_widths = [10.5, 40, 8.5, 23, 13.5, 12, 14]
+        for i, column_width in enumerate(column_widths):
+            ws.column_dimensions[get_column_letter(i+1)].width = column_width
+        
+        wb.save(excel_file)
+
+    base_path = "BASE.xlsx"
+    dacxanalista_path = "Nuevo_DACxANALISTA.xlsx"
+    resultado_path = "resultado.xlsx"
+
+    obtener_deudas_vencidas(base_path, dacxanalista_path, resultado_path)
+    formatear_excel(resultado_path)
+
+if __name__ == "__main__":
+    main()
