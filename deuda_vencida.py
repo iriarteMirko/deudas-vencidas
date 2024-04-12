@@ -16,7 +16,6 @@ def resource_path(relative_path):
         base_path = sys._MEIPASS2
     except Exception:
         base_path = os.path.abspath(".")
-
     return os.path.join(base_path, relative_path)
 
 def main():
@@ -230,9 +229,9 @@ def main():
         frame_base = CTkFrame(main_frame)
         frame_base.grid(row=1, column=0, padx=(20, 10), pady=(20, 0), sticky="nsew")
         
-        ruta_base = CTkLabel(frame_base, text="BASE", font=("Calibri",18,"bold"), text_color="black")
+        ruta_base = CTkLabel(frame_base, text="BASE", font=("Calibri",17,"bold"), text_color="black")
         ruta_base.grid(row=0, column=0, padx=(20,20), pady=(20, 0), sticky="nsew")
-        boton_base = CTkButton(frame_base, text="Seleccionar", font=("Calibri",18), text_color="black", 
+        boton_base = CTkButton(frame_base, text="Seleccionar", font=("Calibri",17), text_color="black", 
                                 fg_color="transparent", border_color="#d11515", border_width=3, hover_color="#d11515", 
                                 width=25, corner_radius=25, command=lambda: seleccionar_base())
         boton_base.grid(row=1, column=0, ipady=10, padx=(20,20), pady=(0, 20), sticky="nsew")
@@ -240,17 +239,16 @@ def main():
         frame_dacx = CTkFrame(main_frame)
         frame_dacx.grid(row=1, column=1, padx=(10, 20), pady=(20, 0), sticky="nsew")
         
-        ruta_dacxa = CTkLabel(frame_dacx, text="DACxANALISTA", font=("Calibri",18,"bold"), text_color="black")
+        ruta_dacxa = CTkLabel(frame_dacx, text="DACxANALISTA", font=("Calibri",17,"bold"), text_color="black")
         ruta_dacxa.grid(row=0, column=0, padx=(20,20), pady=(20, 0), sticky="nsew")
-        boton_dacx = CTkButton(frame_dacx, text="Seleccionar", font=("Calibri",18), text_color="black", 
+        boton_dacx = CTkButton(frame_dacx, text="Seleccionar", font=("Calibri",17), text_color="black", 
                                 fg_color="transparent", border_color="#d11515", border_width=3, hover_color="#d11515", 
                                 width=25, corner_radius=25, command=lambda: seleccionar_dacxanalista())
         boton_dacx.grid(row=1, column=0, ipady=10, padx=(20,20), pady=(0, 20), sticky="nsew")
         
-        boton_ejecutar = CTkButton(
-            main_frame, text="EJECUTAR", fg_color="gray", border_color="black", border_width=2,
-            font=("Calibri",25,"bold"), text_color="black", hover_color="red",
-            command=lambda: ejecutar())
+        boton_ejecutar = CTkButton(main_frame, text="EJECUTAR", fg_color="gray", border_color="black", 
+                                    border_width=2, font=("Calibri",25,"bold"), text_color="black", 
+                                    hover_color="red", command=lambda: ejecutar())
         boton_ejecutar.grid(row=2, column=0, columnspan=2, ipady=20, padx=(20,20), pady=(20, 20), sticky="nsew")
 
         app.mainloop()
