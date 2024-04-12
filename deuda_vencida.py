@@ -212,8 +212,8 @@ def main():
 
     def app():
         app = CTk()
-        app.title("DV")
-        app.iconbitmap(resource_path("icono.ico"))
+        app.title("Deudas Vencidas")
+        app.iconbitmap(resource_path("./images/icono.ico"))
         app.resizable(False, False)
         set_appearance_mode("light")
         
@@ -221,30 +221,37 @@ def main():
         main_frame.pack_propagate(0)
         main_frame.pack(fill="both", expand=True)
         
-        titulo = CTkLabel(main_frame, text="Deudas Vencidas", font=("Calibri",25,"bold"), text_color="black")
-        titulo.grid(row=0, column=0, columnspan=2, padx=(20,20), pady=(20, 0), sticky="nsew")
+        frame_title = CTkFrame(main_frame)
+        frame_title.grid(row=0, column=0, columnspan=2, padx=(20, 20), pady=(20, 0), sticky="nsew")
         
-        ruta_base = CTkLabel(main_frame, text="BASE", font=("Calibri",15,"bold"), text_color="black")
-        ruta_base.grid(row=1, column=0, padx=(20,10), pady=(20, 0), sticky="nsew")
-        boton_seleccionar_ruta_base = CTkButton(
-            main_frame, text="Seleccionar", fg_color="gray", border_color="black", border_width=2,
-            font=("Calibri",15,"bold"), text_color="black", hover_color="red", width=15,
-            command=lambda: seleccionar_base())
-        boton_seleccionar_ruta_base.grid(row=2, column=0, padx=(20,10), pady=(0, 0), sticky="nsew")
+        titulo = CTkLabel(frame_title, text="  DEUDAS VENCIDAS  ", font=("Arial",25,"bold"), text_color="black")
+        titulo.pack(fill="both", expand=True, ipady=30, anchor="center")
         
-        ruta_dacxa = CTkLabel(main_frame, text="DACxANALISTA", font=("Calibri",15,"bold"), text_color="black")
-        ruta_dacxa.grid(row=1, column=1, padx=(10,20), pady=(20, 0), sticky="nsew")
-        boton_seleccionar_ruta_dacxa = CTkButton(
-            main_frame, text="Seleccionar", fg_color="gray", border_color="black", border_width=2,
-            font=("Calibri",15,"bold"), text_color="black", hover_color="red", width=15,
-            command=lambda: seleccionar_dacxanalista())
-        boton_seleccionar_ruta_dacxa.grid(row=2, column=1, padx=(10,20), pady=(0, 0), sticky="nsew")
+        frame_base = CTkFrame(main_frame)
+        frame_base.grid(row=1, column=0, padx=(20, 10), pady=(20, 0), sticky="nsew")
+        
+        ruta_base = CTkLabel(frame_base, text="BASE", font=("Calibri",18,"bold"), text_color="black")
+        ruta_base.grid(row=0, column=0, padx=(20,20), pady=(20, 0), sticky="nsew")
+        boton_base = CTkButton(frame_base, text="Seleccionar", font=("Calibri",18), text_color="black", 
+                                fg_color="transparent", border_color="#d11515", border_width=3, hover_color="#d11515", 
+                                width=25, corner_radius=25, command=lambda: seleccionar_base())
+        boton_base.grid(row=1, column=0, ipady=10, padx=(20,20), pady=(0, 20), sticky="nsew")
+        
+        frame_dacx = CTkFrame(main_frame)
+        frame_dacx.grid(row=1, column=1, padx=(10, 20), pady=(20, 0), sticky="nsew")
+        
+        ruta_dacxa = CTkLabel(frame_dacx, text="DACxANALISTA", font=("Calibri",18,"bold"), text_color="black")
+        ruta_dacxa.grid(row=0, column=0, padx=(20,20), pady=(20, 0), sticky="nsew")
+        boton_dacx = CTkButton(frame_dacx, text="Seleccionar", font=("Calibri",18), text_color="black", 
+                                fg_color="transparent", border_color="#d11515", border_width=3, hover_color="#d11515", 
+                                width=25, corner_radius=25, command=lambda: seleccionar_dacxanalista())
+        boton_dacx.grid(row=1, column=0, ipady=10, padx=(20,20), pady=(0, 20), sticky="nsew")
         
         boton_ejecutar = CTkButton(
             main_frame, text="EJECUTAR", fg_color="gray", border_color="black", border_width=2,
-            font=("Calibri",20,"bold"), text_color="black", hover_color="red",
+            font=("Calibri",25,"bold"), text_color="black", hover_color="red",
             command=lambda: ejecutar())
-        boton_ejecutar.grid(row=3, column=0, columnspan=2, ipady=10, padx=(20,20), pady=(30, 20), sticky="nsew")
+        boton_ejecutar.grid(row=2, column=0, columnspan=2, ipady=20, padx=(20,20), pady=(20, 20), sticky="nsew")
 
         app.mainloop()
 
