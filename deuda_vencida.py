@@ -54,26 +54,52 @@ def main():
             messagebox.showerror("Error", "Algo salió mal. Por favor, intente nuevamente.")
 
     def obtener_deudas_vencidas(base_path, dacxanalista_path, resultado_path):
+        lista_estados = []
+        variables = [
+            (var_ope_con_mov, "OPERATIVO CON MOVIMIENTO"),
+            (var_ope_sin_mov, "OPERATIVO SIN MOVIMIENTO"),
+            (var_proc_liquidacion, "PROCESO DE LIQUIDACIÓN"),
+            (var_proc_pre_resolucion, "PROCESO DE PRE RESOLUCION"),
+            (var_proc_resolucion, "PROCESO DE RESOLUCIÓN"),
+            (var_liquidado, "LIQUIDADO")
+        ]
+        for var, estado in variables:
+            if var.get():
+                lista_estados.append(estado)
+                
+        if len(lista_estados) == 0:
+            messagebox.showerror("Error", "Por favor, seleccione al menos un estado.")
+            return
         try:
             df_base = pd.read_excel(base_path)
-            df_base = df_base.iloc[:, 3:]
-            df_base = df_base.iloc[7:, :]
-            df_base = df_base.rename(columns=df_base.iloc[0])
-            df_base = df_base[1:]
+            df_base.dropna(subset=["ACC","Cuenta"], inplace=True)
             df_base = df_base.reset_index(drop=True)
-            df_base = df_base.dropna(subset=["Cuenta","ACC"])
-            df_base = df_base.reset_index(drop=True)
-            df_base = df_base.rename(columns={"     Importe en ML": "Importe"})
+            df_base = df_base.rename(columns={"Importe en ML": "Importe"})
             columnas_deseadas = ["ACC", "Cuenta", "Demora", "Importe"]
             df_base = df_base[columnas_deseadas]
             df_base["Demora"] = df_base["Demora"].astype("Int64")
             df_base["Importe"] = df_base["Importe"].astype(float)
-            # Condition 1
+            df_base = df_base.reset_index(drop=True)
+            
+            df_dacxanalista = pd.read_excel(dacxanalista_path, sheet_name="Base_NUEVA")
+            columnas_dacx = ["DEUDOR", "NOMBRE", "ANALISTA_ACT", "ESTADO"]
+            df_dacxanalista = df_dacxanalista[columnas_dacx]
+            
+            if combobox_analistas.get() != "TODOS":
+                df_dacxanalista = df_dacxanalista[df_dacxanalista["ANALISTA_ACT"]==combobox_analistas.get()]
+            else:
+                df_dacxanalista = df_dacxanalista[df_dacxanalista["ANALISTA_ACT"]!="SIN INFORMACION"]
+            
+            if len(lista_estados) > 0:
+                df_dacxanalista = df_dacxanalista[df_dacxanalista["ESTADO"].isin(lista_estados)]
+            
+            lista_cartera = df_dacxanalista["DEUDOR"].tolist()
+            df_base = df_base[df_base["Cuenta"].isin(lista_cartera)]
+            
             df_base["Status"] = df_base["Importe"].apply(lambda x: "DEUDA" if x > 0 else "SALDOS A FAVOR")
-            # Condition 2
             df_base["Tipo Deuda"] = df_base["Demora"].apply(lambda x: "CORRIENTE" if x <= 0 else "VENCIDA")
-            # Condition 3
             df_base["Saldo Final"] = df_base.apply(lambda row: row["Importe"] if (row["Status"] == "DEUDA" and row["Tipo Deuda"] == "VENCIDA") else (row["Importe"] if row["Status"] == "SALDOS A FAVOR" else "NO"), axis=1)
+            
             df_base = df_base[df_base["Saldo Final"] != "NO"]
             df_base = df_base.sort_values(by=["Cuenta"], ascending=[True])
             df_base = df_base.sort_values(by=["ACC"], ascending=[True])
@@ -98,18 +124,13 @@ def main():
                             
             df_base = df_base[(df_base["Tipo Deuda"] == "VENCIDA") & (df_base["Status"] == "DEUDA")]
             df_base = df_base.reset_index(drop=True)
-            
             grouped_df = df_base.groupby(["Cuenta", "ACC"]).agg({"Demora": "max", "Saldo Final": "sum"})
             
             df_final = grouped_df.reset_index()[["Cuenta", "ACC", "Saldo Final", "Demora"]]
             df_final = df_final.rename(columns={"Cuenta":"Cod Cliente", "ACC":"Área Ctrl", "Saldo Final":"Deuda Vencida", "Demora":"Días Morosidad"})
-            
-            df_dacxanalista = pd.read_excel(dacxanalista_path, sheet_name="Base_NUEVA")
-            
             df_final = df_final.merge(df_dacxanalista[["DEUDOR", "NOMBRE"]], left_on="Cod Cliente", right_on="DEUDOR", how="left")
             df_final = df_final.rename(columns={"NOMBRE": "Razón Social"})
             df_final = df_final.drop(columns=["DEUDOR"])
-            
             areas_de_control = {
                 "PE01": "Post-Pago",
                 "PE02": "Pre-Pago",
@@ -127,11 +148,13 @@ def main():
                 "PE16": "DTH",
                 "PE17": "HFC"
             }
-            df_final["Producto"] = df_final["Área Ctrl"].apply(lambda x: areas_de_control[x])
+            df_final = df_final[df_final["Área Ctrl"].isin(areas_de_control.keys())]
+            df_final["Producto"] = df_final["Área Ctrl"].apply(lambda x: areas_de_control.get(x))
             df_final["Código Pago"] = "33" + df_final["Área Ctrl"].str[-2:] + df_final["Cod Cliente"].astype(str)
             df_final = df_final[["Cod Cliente", "Razón Social", "Área Ctrl", "Producto", "Deuda Vencida", "Código Pago", "Días Morosidad"]]
             df_final["Deuda Vencida"] = df_final["Deuda Vencida"].astype(float)
             df_final = df_final[df_final["Deuda Vencida"] != 0]
+            
             df_final.to_excel(resultado_path, index=False)
             
             formatear_excel(resultado_path)
@@ -210,6 +233,7 @@ def main():
             messagebox.showerror("Error", str(ex))
 
     def app():
+        global combobox_analistas, var_ope_con_mov, var_ope_sin_mov, var_proc_liquidacion, var_proc_pre_resolucion, var_proc_resolucion, var_liquidado
         app = CTk()
         app.title("Deudas Vencidas")
         app.iconbitmap(resource_path("./images/icono.ico"))
@@ -265,42 +289,42 @@ def main():
         label_estado_dac.grid(row=0, column=0, columnspan=2, padx=(20,20), pady=(10, 0), sticky="nsew")
         
         var_ope_con_mov = BooleanVar()
-        var_ope_con_mov.set(False)
+        var_ope_con_mov.set(True)
         ope_con_mov = CTkCheckBox(frame_estado, text="OP. CON MOVIMIENTO", font=("Calibri",17), 
                                     border_color="#d11515", border_width = 2, fg_color="#d11515", 
                                     hover_color="#d11515", variable=var_ope_con_mov)
         ope_con_mov.grid(row=1, column=0, padx=(20,10), pady=(10, 0), sticky="nsew")
         
         var_ope_sin_mov = BooleanVar()
-        var_ope_sin_mov.set(False)
+        var_ope_sin_mov.set(True)
         ope_sin_mov = CTkCheckBox(frame_estado, text="OP. SIN MOVIMIENTO", font=("Calibri",17), 
                                     border_color="#d11515", border_width = 2, fg_color="#d11515", 
                                     hover_color="#d11515", variable=var_ope_sin_mov)
         ope_sin_mov.grid(row=1, column=1, padx=(10,20), pady=(10, 0), sticky="nsew")
         
         var_proc_liquidacion = BooleanVar()
-        var_proc_liquidacion.set(False)
+        var_proc_liquidacion.set(True)
         proc_liquidacion = CTkCheckBox(frame_estado, text="PROC. LIQUIDACION", font=("Calibri",17), 
                                         border_color="#d11515", border_width = 2, fg_color="#d11515", 
                                         hover_color="#d11515", variable=var_proc_liquidacion)
         proc_liquidacion.grid(row=2, column=0, padx=(20,10), pady=(10, 0), sticky="nsew")
         
         var_proc_pre_resolucion = BooleanVar()
-        var_proc_pre_resolucion.set(False)
+        var_proc_pre_resolucion.set(True)
         proc_pre_resolucion = CTkCheckBox(frame_estado, text="PROC. PRE RESOLUCION", font=("Calibri",17), 
                                             border_color="#d11515", border_width = 2, fg_color="#d11515", 
                                             hover_color="#d11515", variable=var_proc_pre_resolucion)
         proc_pre_resolucion.grid(row=2, column=1, padx=(10,20), pady=(10, 0), sticky="nsew")
         
         var_proc_resolucion = BooleanVar()
-        var_proc_resolucion.set(False)
+        var_proc_resolucion.set(True)
         proc_resolucion = CTkCheckBox(frame_estado, text="PROC. RESOLUCION", font=("Calibri",17), 
                                         border_color="#d11515", border_width = 2, fg_color="#d11515", 
                                         hover_color="#d11515", variable=var_proc_resolucion)
         proc_resolucion.grid(row=3, column=0, padx=(20,10), pady=(10, 20), sticky="nsew")
         
         var_liquidado = BooleanVar()
-        var_liquidado.set(False)
+        var_liquidado.set(True)
         liquidado = CTkCheckBox(frame_estado, text="LIQUIDADO", font=("Calibri",17), border_color="#d11515", 
                                 border_width = 2, fg_color="#d11515", hover_color="#d11515", 
                                 variable=var_liquidado)
@@ -310,7 +334,7 @@ def main():
                                     border_color="black", border_width=3, fg_color="gray", 
                                     hover_color="red", command=lambda: ejecutar())
         boton_ejecutar.grid(row=4, column=0, columnspan=2, ipady=20, padx=(20,20), pady=(20, 20), sticky="nsew")
-
+        
         app.mainloop()
 
     app()
