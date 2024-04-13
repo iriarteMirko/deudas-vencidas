@@ -8,6 +8,7 @@ from openpyxl.utils import get_column_letter
 from tkinter import messagebox
 from customtkinter import *
 from conexion import *
+import time
 
 warnings.filterwarnings("ignore")
 
@@ -54,6 +55,7 @@ def main():
             messagebox.showerror("Error", "Algo salió mal. Por favor, intente nuevamente.")
 
     def obtener_deudas_vencidas(base_path, dacxanalista_path, resultado_path):
+        start = time.time()
         lista_estados = []
         variables = [
             (var_ope_con_mov, "OPERATIVO CON MOVIMIENTO"),
@@ -107,7 +109,7 @@ def main():
             df_base = df_base.reset_index(drop=True)
             
             ultima_fila = df_base.shape[0]
-            for i in range(ultima_fila):
+            """for i in range(ultima_fila):
                 if df_base.loc[i, "Status"] == "DEUDA":
                     saldoDeuda = df_base.loc[i, "Saldo Final"]
                     for j in range(ultima_fila):
@@ -120,8 +122,26 @@ def main():
                             montoCompensar = min(saldoDeuda, abs(saldoFavor))
                             df_base.loc[i, "Saldo Final"] = saldoDeuda - montoCompensar
                             df_base.loc[j, "Saldo Final"] = saldoFavor + montoCompensar
-                            saldoDeuda = df_base.loc[i, "Saldo Final"]
-                            
+                            saldoDeuda = df_base.loc[i, "Saldo Final"]"""
+            cuentas_verificadas = {}
+            for i in range(ultima_fila):
+                if df_base.loc[i, "Status"] == "DEUDA":
+                    saldoDeuda = df_base.loc[i, "Saldo Final"]
+                    cuenta_actual = df_base.loc[i, "Cuenta"]
+                    if cuenta_actual not in cuentas_verificadas:
+                        cuentas_verificadas[cuenta_actual] = True
+                        for j in range(ultima_fila):
+                            if (
+                                df_base.loc[j, "Cuenta"] == cuenta_actual and 
+                                df_base.loc[j, "ACC"] == df_base.loc[i, "ACC"] and 
+                                df_base.loc[j, "Status"] == "SALDOS A FAVOR"
+                            ):
+                                saldoFavor = df_base.loc[j, "Saldo Final"]
+                                montoCompensar = min(saldoDeuda, abs(saldoFavor))
+                                df_base.loc[i, "Saldo Final"] = saldoDeuda - montoCompensar
+                                df_base.loc[j, "Saldo Final"] = saldoFavor + montoCompensar
+                                saldoDeuda = df_base.loc[i, "Saldo Final"]
+            
             df_base = df_base[(df_base["Tipo Deuda"] == "VENCIDA") & (df_base["Status"] == "DEUDA")]
             df_base = df_base.reset_index(drop=True)
             grouped_df = df_base.groupby(["Cuenta", "ACC"]).agg({"Demora": "max", "Saldo Final": "sum"})
@@ -159,7 +179,8 @@ def main():
             
             formatear_excel(resultado_path)
             os.startfile(resultado_path)
-            
+            end = time.time()
+            print("Tiempo de ejecución: ", end-start, " segundos.")
         except Exception:
             messagebox.showerror("Error", "Algo salió mal. Por favor, intente nuevamente.")
 
