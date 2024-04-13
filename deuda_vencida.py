@@ -45,14 +45,14 @@ def main():
                         cell.font = font_header
                         cell.alignment = Alignment(horizontal="center")
             
-            column_widths = [10.5, 40, 8.5, 23, 13.5, 12, 14]
+            column_widths = [10.5, 30, 8.5, 23, 13.5, 12, 14, 20, 27]
             for i, column_width in enumerate(column_widths):
                 ws.column_dimensions[get_column_letter(i+1)].width = column_width
             
             wb.save(excel_file)
             
-        except Exception:
-            messagebox.showerror("Error", "Algo salió mal. Por favor, intente nuevamente.")
+        except Exception as ex:
+            messagebox.showerror("Error", "Algo salió mal. Por favor, intente nuevamente.\nDetalles: "+str(ex))
 
     def obtener_deudas_vencidas(base_path, dacxanalista_path, resultado_path):
         start = time.time()
@@ -106,41 +106,30 @@ def main():
             df_base = df_base.sort_values(by=["Cuenta"], ascending=[True])
             df_base = df_base.sort_values(by=["ACC"], ascending=[True])
             df_base = df_base.sort_values(by=["Demora"], ascending=[False])
+            df_base = df_base.sort_values(by=["Cuenta"], ascending=[True])
             df_base = df_base.reset_index(drop=True)
             
+            cuentas_verificadas = []
             ultima_fila = df_base.shape[0]
-            """for i in range(ultima_fila):
+            for i in range(ultima_fila):
+                cuenta_actual = df_base.loc[i, "Cuenta"]
+                if cuenta_actual not in cuentas_verificadas:
+                    cuentas_verificadas.append(cuenta_actual)
+                    inicio = i
                 if df_base.loc[i, "Status"] == "DEUDA":
                     saldoDeuda = df_base.loc[i, "Saldo Final"]
-                    for j in range(ultima_fila):
+                    rango = df_base[df_base['Cuenta'] == cuenta_actual].shape[0]
+                    for j in range(inicio, inicio+rango):
                         if (
-                            df_base.loc[i, "Cuenta"]    == df_base.loc[j, "Cuenta"] and 
-                            df_base.loc[i, "ACC"]       == df_base.loc[j, "ACC"]    and 
-                            df_base.loc[j, "Status"]    == "SALDOS A FAVOR"
+                            df_base.loc[j, "Cuenta"] == cuenta_actual and 
+                            df_base.loc[j, "ACC"] == df_base.loc[i, "ACC"] and 
+                            df_base.loc[j, "Status"] == "SALDOS A FAVOR"
                             ):
                             saldoFavor = df_base.loc[j, "Saldo Final"]
                             montoCompensar = min(saldoDeuda, abs(saldoFavor))
                             df_base.loc[i, "Saldo Final"] = saldoDeuda - montoCompensar
                             df_base.loc[j, "Saldo Final"] = saldoFavor + montoCompensar
-                            saldoDeuda = df_base.loc[i, "Saldo Final"]"""
-            cuentas_verificadas = {}
-            for i in range(ultima_fila):
-                if df_base.loc[i, "Status"] == "DEUDA":
-                    saldoDeuda = df_base.loc[i, "Saldo Final"]
-                    cuenta_actual = df_base.loc[i, "Cuenta"]
-                    if cuenta_actual not in cuentas_verificadas:
-                        cuentas_verificadas[cuenta_actual] = True
-                        for j in range(ultima_fila):
-                            if (
-                                df_base.loc[j, "Cuenta"] == cuenta_actual and 
-                                df_base.loc[j, "ACC"] == df_base.loc[i, "ACC"] and 
-                                df_base.loc[j, "Status"] == "SALDOS A FAVOR"
-                            ):
-                                saldoFavor = df_base.loc[j, "Saldo Final"]
-                                montoCompensar = min(saldoDeuda, abs(saldoFavor))
-                                df_base.loc[i, "Saldo Final"] = saldoDeuda - montoCompensar
-                                df_base.loc[j, "Saldo Final"] = saldoFavor + montoCompensar
-                                saldoDeuda = df_base.loc[i, "Saldo Final"]
+                            saldoDeuda = df_base.loc[i, "Saldo Final"]
             
             df_base = df_base[(df_base["Tipo Deuda"] == "VENCIDA") & (df_base["Status"] == "DEUDA")]
             df_base = df_base.reset_index(drop=True)
@@ -148,8 +137,8 @@ def main():
             
             df_final = grouped_df.reset_index()[["Cuenta", "ACC", "Saldo Final", "Demora"]]
             df_final = df_final.rename(columns={"Cuenta":"Cod Cliente", "ACC":"Área Ctrl", "Saldo Final":"Deuda Vencida", "Demora":"Días Morosidad"})
-            df_final = df_final.merge(df_dacxanalista[["DEUDOR", "NOMBRE"]], left_on="Cod Cliente", right_on="DEUDOR", how="left")
-            df_final = df_final.rename(columns={"NOMBRE": "Razón Social"})
+            df_final = df_final.merge(df_dacxanalista[["DEUDOR", "NOMBRE", "ANALISTA_ACT", "ESTADO"]], left_on="Cod Cliente", right_on="DEUDOR", how="left")
+            df_final = df_final.rename(columns={"NOMBRE":"Razón Social", "ANALISTA_ACT":"Analista", "ESTADO":"Estado"})
             df_final = df_final.drop(columns=["DEUDOR"])
             areas_de_control = {
                 "PE01": "Post-Pago",
@@ -171,18 +160,19 @@ def main():
             df_final = df_final[df_final["Área Ctrl"].isin(areas_de_control.keys())]
             df_final["Producto"] = df_final["Área Ctrl"].apply(lambda x: areas_de_control.get(x))
             df_final["Código Pago"] = "33" + df_final["Área Ctrl"].str[-2:] + df_final["Cod Cliente"].astype(str)
-            df_final = df_final[["Cod Cliente", "Razón Social", "Área Ctrl", "Producto", "Deuda Vencida", "Código Pago", "Días Morosidad"]]
-            df_final["Deuda Vencida"] = df_final["Deuda Vencida"].astype(float)
+            df_final = df_final[["Cod Cliente", "Razón Social", "Área Ctrl", "Producto", "Deuda Vencida", "Código Pago", "Días Morosidad", "Analista", "Estado"]]
+            df_final["Deuda Vencida"] = df_final["Deuda Vencida"].astype(float).round(2)
             df_final = df_final[df_final["Deuda Vencida"] != 0]
-            
             df_final.to_excel(resultado_path, index=False)
             
             formatear_excel(resultado_path)
-            os.startfile(resultado_path)
             end = time.time()
-            print("Tiempo de ejecución: ", end-start, " segundos.")
-        except Exception:
-            messagebox.showerror("Error", "Algo salió mal. Por favor, intente nuevamente.")
+            messagebox.showinfo("Éxito", "Registros encontrados: "+str(df_final.shape[0])+"\nTiempo de ejecución: "+str(round(end-start,2))+" segundos.")
+            
+            os.startfile(resultado_path)
+            
+        except Exception as ex:
+            messagebox.showerror("Error", "Algo salió mal. Por favor, intente nuevamente.\nDetalles: "+str(ex))
 
     def seleccionar_base():
         archivo_excel = filedialog.askopenfilename(
