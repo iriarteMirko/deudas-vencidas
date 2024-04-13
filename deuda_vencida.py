@@ -1,6 +1,8 @@
 import pandas as pd
 import openpyxl
 import warnings
+import threading
+import time
 import sys
 import os
 from openpyxl.styles import PatternFill, Border, Side, Alignment, Font
@@ -8,7 +10,6 @@ from openpyxl.utils import get_column_letter
 from tkinter import messagebox
 from customtkinter import *
 from conexion import *
-import time
 
 warnings.filterwarnings("ignore")
 
@@ -20,6 +21,29 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 def main():
+    def verificar_thread(thread):
+        if thread.is_alive():
+            app.after(1000, verificar_thread, thread)
+        else:
+            boton_ejecutar.configure(state="normal")
+            boton_base.configure(state="normal")
+            boton_dacx.configure(state="normal")
+            combobox_analistas.configure(state="normal")
+
+    def iniciar_tarea(action):
+        if action == 1:
+            thread = threading.Thread(target=ejecutar)
+        else:
+            pass
+        
+        boton_ejecutar.configure(state="disabled")
+        boton_base.configure(state="disabled")
+        boton_dacx.configure(state="disabled")
+        combobox_analistas.configure(state="disabled")
+        
+        thread.start()
+        app.after(1000, verificar_thread, thread)
+
     def formatear_excel(excel_file):
         try:
             wb = openpyxl.load_workbook(excel_file)
@@ -226,6 +250,7 @@ def main():
             conexion.close
 
     def ejecutar():
+        progressbar.start()
         query = ("""SELECT * FROM RUTAS WHERE ID == 1""")
         try:
             datos = ejecutar_query(query)
@@ -242,9 +267,11 @@ def main():
                 obtener_deudas_vencidas(ruta_base, ruta_dacxa, ruta_resultado)
         except Exception as ex:
             messagebox.showerror("Error", str(ex))
+        finally:
+            progressbar.stop()
 
-    def app():
-        global combobox_analistas, var_ope_con_mov, var_ope_sin_mov, var_proc_liquidacion, var_proc_pre_resolucion, var_proc_resolucion, var_liquidado
+    def crear_app():
+        global app, combobox_analistas, var_ope_con_mov, var_ope_sin_mov, var_proc_liquidacion, var_proc_pre_resolucion, var_proc_resolucion, var_liquidado, boton_base, boton_dacx, boton_ejecutar, progressbar
         app = CTk()
         app.title("Deudas Vencidas")
         app.iconbitmap(resource_path("./images/icono.ico"))
@@ -259,27 +286,27 @@ def main():
         frame_title.grid(row=0, column=0, columnspan=2, padx=(20, 20), pady=(20, 0), sticky="nsew")
         
         titulo = CTkLabel(frame_title, text="  DEUDAS VENCIDAS  ", font=("Arial",25,"bold"))
-        titulo.pack(fill="both", expand=True, ipady=30, anchor="center")
+        titulo.pack(fill="both", expand=True, ipady=20, anchor="center")
         
         frame_base = CTkFrame(main_frame)
         frame_base.grid(row=1, column=0, padx=(20, 10), pady=(20, 0), sticky="nsew")
         
         ruta_base = CTkLabel(frame_base, text="Ruta BASE", font=("Calibri",17,"bold"))
-        ruta_base.pack(padx=(20,20), pady=(15, 0), fill="both", expand=True, anchor="center", side="top")
+        ruta_base.pack(padx=(20, 20), pady=(5, 0), fill="both", expand=True, anchor="center", side="top")
         boton_base = CTkButton(frame_base, text="Seleccionar", font=("Calibri",17), text_color="black",
                                 fg_color="transparent", border_color="#d11515", border_width=3, hover_color="#d11515", 
                                 width=25, corner_radius=25, command=lambda: seleccionar_base())
-        boton_base.pack(padx=(20,20), pady=(0, 20), fill="both", anchor="center", side="bottom")
+        boton_base.pack(padx=(20, 20), pady=(0, 15), fill="both", anchor="center", side="bottom")
         
         frame_dacx = CTkFrame(main_frame)
         frame_dacx.grid(row=1, column=1, padx=(10, 20), pady=(20, 0), sticky="nsew")
         
         ruta_dacxa = CTkLabel(frame_dacx, text="Ruta DACxAnalista", font=("Calibri",17,"bold"))
-        ruta_dacxa.pack(padx=(20,20), pady=(15, 0), fill="both", expand=True, anchor="center", side="top")
+        ruta_dacxa.pack(padx=(20, 20), pady=(5, 0), fill="both", expand=True, anchor="center", side="top")
         boton_dacx = CTkButton(frame_dacx, text="Seleccionar", font=("Calibri",17), text_color="black",
                                 fg_color="transparent", border_color="#d11515", border_width=3, hover_color="#d11515", 
                                 width=25, corner_radius=25, command=lambda: seleccionar_dacxanalista())
-        boton_dacx.pack(padx=(20,20), pady=(0, 20), fill="both", anchor="center", side="bottom")
+        boton_dacx.pack(padx=(20, 20), pady=(0, 15), fill="both", anchor="center", side="bottom")
         
         frame_analista = CTkFrame(main_frame)
         frame_analista.grid(row=2, column=0, columnspan=2, padx=(20, 20), pady=(20, 0), sticky="nsew")
@@ -287,68 +314,72 @@ def main():
         analistas = ["TODOS", "DIEGO RODRIGUEZ", "JOSE LUIS VALVERDE", "REGION NORTE", 
                     "REGION SUR", "YOLANDA OLIVA", "RAQUEL CAYETANO", "WALTER LOPEZ"]
         label_analista = CTkLabel(frame_analista, text="Analista Actual: ", font=("Calibri",18,"bold"))
-        label_analista.pack(padx=(20,0), pady=(20, 20), fill="both", expand=True, anchor="w", side="left")
+        label_analista.pack(padx=(20, 0), pady=(15, 15), fill="both", expand=True, anchor="w", side="left")
         combobox_analistas = CTkComboBox(frame_analista, font=("Calibri",17), width=200, values=analistas, 
                                             state="readonly", border_color="#d11515")
-        combobox_analistas.pack(padx=(0,20), pady=(20, 20), fill="both", expand=True, anchor="w", side="right")
+        combobox_analistas.pack(padx=(0, 40), pady=(15, 15), fill="both", expand=True, anchor="w", side="right")
         combobox_analistas.set("TODOS")
         
         frame_estado = CTkFrame(main_frame)
         frame_estado.grid(row=3, column=0, columnspan=2, padx=(20, 20), pady=(20, 0), sticky="nsew")
         
         label_estado_dac = CTkLabel(frame_estado, text="Seleccionar Estados: ", font=("Calibri",18,"bold"))
-        label_estado_dac.grid(row=0, column=0, columnspan=2, padx=(20,20), pady=(10, 0), sticky="nsew")
+        label_estado_dac.grid(row=0, column=0, columnspan=2, padx=(20, 20), pady=(10, 0), sticky="nsew")
         
         var_ope_con_mov = BooleanVar()
         var_ope_con_mov.set(True)
         ope_con_mov = CTkCheckBox(frame_estado, text="OP. CON MOVIMIENTO", font=("Calibri",17), 
                                     border_color="#d11515", border_width = 2, fg_color="#d11515", 
                                     hover_color="#d11515", variable=var_ope_con_mov)
-        ope_con_mov.grid(row=1, column=0, padx=(20,10), pady=(10, 0), sticky="nsew")
+        ope_con_mov.grid(row=1, column=0, padx=(20, 10), pady=(10, 0), sticky="nsew")
         
         var_ope_sin_mov = BooleanVar()
         var_ope_sin_mov.set(True)
         ope_sin_mov = CTkCheckBox(frame_estado, text="OP. SIN MOVIMIENTO", font=("Calibri",17), 
                                     border_color="#d11515", border_width = 2, fg_color="#d11515", 
                                     hover_color="#d11515", variable=var_ope_sin_mov)
-        ope_sin_mov.grid(row=1, column=1, padx=(10,20), pady=(10, 0), sticky="nsew")
+        ope_sin_mov.grid(row=1, column=1, padx=(10, 20), pady=(10, 0), sticky="nsew")
         
         var_proc_liquidacion = BooleanVar()
         var_proc_liquidacion.set(True)
         proc_liquidacion = CTkCheckBox(frame_estado, text="PROC. LIQUIDACION", font=("Calibri",17), 
                                         border_color="#d11515", border_width = 2, fg_color="#d11515", 
                                         hover_color="#d11515", variable=var_proc_liquidacion)
-        proc_liquidacion.grid(row=2, column=0, padx=(20,10), pady=(10, 0), sticky="nsew")
+        proc_liquidacion.grid(row=2, column=0, padx=(20, 10), pady=(10, 0), sticky="nsew")
         
         var_proc_resolucion = BooleanVar()
         var_proc_resolucion.set(True)
         proc_resolucion = CTkCheckBox(frame_estado, text="PROC. RESOLUCION", font=("Calibri",17), 
                                             border_color="#d11515", border_width = 2, fg_color="#d11515", 
                                             hover_color="#d11515", variable=var_proc_resolucion)
-        proc_resolucion.grid(row=2, column=1, padx=(10,20), pady=(10, 0), sticky="nsew")
+        proc_resolucion.grid(row=2, column=1, padx=(10, 20), pady=(10, 0), sticky="nsew")
         
         var_proc_pre_resolucion = BooleanVar()
         var_proc_pre_resolucion.set(True)
         proc_pre_resolucion = CTkCheckBox(frame_estado, text="PROC. PRE RESOLUCION", font=("Calibri",17), 
                                         border_color="#d11515", border_width = 2, fg_color="#d11515", 
                                         hover_color="#d11515", variable=var_proc_pre_resolucion)
-        proc_pre_resolucion.grid(row=3, column=0, padx=(20,10), pady=(10, 20), sticky="nsew")
+        proc_pre_resolucion.grid(row=3, column=0, padx=(20, 10), pady=(10, 20), sticky="nsew")
         
         var_liquidado = BooleanVar()
         var_liquidado.set(True)
         liquidado = CTkCheckBox(frame_estado, text="LIQUIDADO", font=("Calibri",17), border_color="#d11515", 
                                 border_width = 2, fg_color="#d11515", hover_color="#d11515", 
                                 variable=var_liquidado)
-        liquidado.grid(row=3, column=1, padx=(10,20), pady=(10, 20), sticky="nsew")
+        liquidado.grid(row=3, column=1, padx=(10, 20), pady=(10, 20), sticky="nsew")
         
         boton_ejecutar = CTkButton(main_frame, text="EJECUTAR", text_color="black", font=("Calibri",25,"bold"), 
                                     border_color="black", border_width=3, fg_color="gray", 
-                                    hover_color="red", command=lambda: ejecutar())
-        boton_ejecutar.grid(row=4, column=0, columnspan=2, ipady=20, padx=(20,20), pady=(20, 20), sticky="nsew")
+                                    hover_color="red", command=lambda: iniciar_tarea(1))
+        boton_ejecutar.grid(row=4, column=0, columnspan=2, ipady=20, padx=(20, 20), pady=(20, 0), sticky="nsew")
         
+        progressbar = CTkProgressBar(main_frame, mode="indeterminate", orientation="horizontal", 
+                                        progress_color="#d11515", height=10, border_width=0)
+        progressbar.grid(row=5, column=0, columnspan=2, padx=(20, 20), pady=(20, 20), sticky="nsew")
+                
         app.mainloop()
 
-    app()
+    crear_app()
 
 if __name__ == "__main__":
     main()
