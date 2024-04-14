@@ -187,6 +187,10 @@ def main():
             df_final = df_final[["Cod Cliente", "Razón Social", "Área Ctrl", "Producto", "Deuda Vencida", "Código Pago", "Días Morosidad", "Analista", "Estado"]]
             df_final["Deuda Vencida"] = df_final["Deuda Vencida"].astype(float).round(2)
             df_final = df_final[df_final["Deuda Vencida"] != 0]
+            df_final = df_final.sort_values(by=["Área Ctrl"], ascending=[True])
+            df_final = df_final.sort_values(by=["Cod Cliente"], ascending=[True])
+            df_final = df_final.sort_values(by=["Deuda Vencida"], ascending=[False])
+            df_final = df_final.sort_values(by=["Días Morosidad"], ascending=[False])
             df_final.to_excel(resultado_path, index=False)
             
             formatear_excel(resultado_path)
@@ -311,8 +315,8 @@ def main():
         frame_analista = CTkFrame(main_frame)
         frame_analista.grid(row=2, column=0, columnspan=2, padx=(20, 20), pady=(20, 0), sticky="nsew")
         
-        analistas = ["TODOS", "DIEGO RODRIGUEZ", "JOSE LUIS VALVERDE", "REGION NORTE", 
-                    "REGION SUR", "YOLANDA OLIVA", "RAQUEL CAYETANO", "WALTER LOPEZ"]
+        analistas = ["TODOS", "RAQUEL CAYETANO", "YOLANDA OLIVA", "DIEGO RODRIGUEZ", "JOSE LUIS VALVERDE", 
+                    "JUAN CARLOS HUATAY", "WALTER LOPEZ", "REGION NORTE", "REGION SUR"]
         label_analista = CTkLabel(frame_analista, text="Analista Actual: ", font=("Calibri",18,"bold"))
         label_analista.pack(padx=(20, 0), pady=(15, 15), fill="both", expand=True, anchor="w", side="left")
         combobox_analistas = CTkComboBox(frame_analista, font=("Calibri",17), width=200, values=analistas, 
@@ -341,28 +345,28 @@ def main():
         ope_sin_mov.grid(row=1, column=1, padx=(10, 20), pady=(10, 0), sticky="nsew")
         
         var_proc_liquidacion = BooleanVar()
-        var_proc_liquidacion.set(True)
+        var_proc_liquidacion.set(False)
         proc_liquidacion = CTkCheckBox(frame_estado, text="PROC. LIQUIDACION", font=("Calibri",17), 
                                         border_color="#d11515", border_width = 2, fg_color="#d11515", 
                                         hover_color="#d11515", variable=var_proc_liquidacion)
         proc_liquidacion.grid(row=2, column=0, padx=(20, 10), pady=(10, 0), sticky="nsew")
         
         var_proc_resolucion = BooleanVar()
-        var_proc_resolucion.set(True)
+        var_proc_resolucion.set(False)
         proc_resolucion = CTkCheckBox(frame_estado, text="PROC. RESOLUCION", font=("Calibri",17), 
                                             border_color="#d11515", border_width = 2, fg_color="#d11515", 
                                             hover_color="#d11515", variable=var_proc_resolucion)
         proc_resolucion.grid(row=2, column=1, padx=(10, 20), pady=(10, 0), sticky="nsew")
         
         var_proc_pre_resolucion = BooleanVar()
-        var_proc_pre_resolucion.set(True)
+        var_proc_pre_resolucion.set(False)
         proc_pre_resolucion = CTkCheckBox(frame_estado, text="PROC. PRE RESOLUCION", font=("Calibri",17), 
                                         border_color="#d11515", border_width = 2, fg_color="#d11515", 
                                         hover_color="#d11515", variable=var_proc_pre_resolucion)
         proc_pre_resolucion.grid(row=3, column=0, padx=(20, 10), pady=(10, 20), sticky="nsew")
         
         var_liquidado = BooleanVar()
-        var_liquidado.set(True)
+        var_liquidado.set(False)
         liquidado = CTkCheckBox(frame_estado, text="LIQUIDADO", font=("Calibri",17), border_color="#d11515", 
                                 border_width = 2, fg_color="#d11515", hover_color="#d11515", 
                                 variable=var_liquidado)
