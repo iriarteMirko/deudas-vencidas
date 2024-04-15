@@ -3,8 +3,6 @@ import openpyxl
 import warnings
 import threading
 import time
-import sys
-import os
 from openpyxl.styles import PatternFill, Border, Side, Alignment, Font
 from openpyxl.utils import get_column_letter
 from tkinter import messagebox
@@ -74,9 +72,8 @@ def main():
                 ws.column_dimensions[get_column_letter(i+1)].width = column_width
             
             wb.save(excel_file)
-            
         except Exception as ex:
-            messagebox.showerror("Error", "Algo salió mal. Por favor, intente nuevamente.\nDetalles: "+str(ex))
+            messagebox.showerror("Error", "Algo salió mal. Por favor, intente nuevamente.\nDetalles: " + str(ex))
 
     def obtener_deudas_vencidas(base_path, dacxanalista_path, resultado_path):
         start = time.time()
@@ -92,7 +89,7 @@ def main():
         for var, estado in variables:
             if var.get():
                 lista_estados.append(estado)
-                
+        
         if len(lista_estados) == 0:
             messagebox.showerror("Error", "Por favor, seleccione al menos un estado.")
             return
@@ -112,9 +109,9 @@ def main():
             df_dacxanalista = df_dacxanalista[columnas_dacx]
             
             if combobox_analistas.get() != "TODOS":
-                df_dacxanalista = df_dacxanalista[df_dacxanalista["ANALISTA_ACT"]==combobox_analistas.get()]
+                df_dacxanalista = df_dacxanalista[df_dacxanalista["ANALISTA_ACT"] == combobox_analistas.get()]
             else:
-                df_dacxanalista = df_dacxanalista[df_dacxanalista["ANALISTA_ACT"]!="SIN INFORMACION"]
+                df_dacxanalista = df_dacxanalista[df_dacxanalista["ANALISTA_ACT"] != "SIN INFORMACION"]
             
             if len(lista_estados) > 0:
                 df_dacxanalista = df_dacxanalista[df_dacxanalista["ESTADO"].isin(lista_estados)]
@@ -124,8 +121,10 @@ def main():
             
             df_base["Status"] = df_base["Importe"].apply(lambda x: "DEUDA" if x > 0 else "SALDOS A FAVOR")
             df_base["Tipo Deuda"] = df_base["Demora"].apply(lambda x: "CORRIENTE" if x <= 0 else "VENCIDA")
-            df_base["Saldo Final"] = df_base.apply(lambda row: row["Importe"] if (row["Status"] == "DEUDA" and row["Tipo Deuda"] == "VENCIDA") else (row["Importe"] if row["Status"] == "SALDOS A FAVOR" else "NO"), axis=1)
-            
+            df_base["Saldo Final"] = df_base.apply(lambda row: row["Importe"] 
+                                                    if (row["Status"]=="DEUDA" and row["Tipo Deuda"]=="VENCIDA") 
+                                                    else (row["Importe"] if row["Status"]=="SALDOS A FAVOR" else "NO"), 
+                                                    axis=1)
             df_base = df_base[df_base["Saldo Final"] != "NO"]
             df_base = df_base.sort_values(by=["Cuenta"], ascending=[True])
             df_base = df_base.sort_values(by=["ACC"], ascending=[True])
@@ -160,9 +159,11 @@ def main():
             grouped_df = df_base.groupby(["Cuenta", "ACC"]).agg({"Demora": "max", "Saldo Final": "sum"})
             
             df_final = grouped_df.reset_index()[["Cuenta", "ACC", "Saldo Final", "Demora"]]
-            df_final = df_final.rename(columns={"Cuenta":"Cod Cliente", "ACC":"Área Ctrl", "Saldo Final":"Deuda Vencida", "Demora":"Días Morosidad"})
-            df_final = df_final.merge(df_dacxanalista[["DEUDOR", "NOMBRE", "ANALISTA_ACT", "ESTADO"]], left_on="Cod Cliente", right_on="DEUDOR", how="left")
-            df_final = df_final.rename(columns={"NOMBRE":"Razón Social", "ANALISTA_ACT":"Analista", "ESTADO":"Estado"})
+            df_final = df_final.rename(columns={"Cuenta": "Cod Cliente", "ACC": "Área Ctrl", 
+                                                "Saldo Final": "Deuda Vencida", "Demora": "Días Morosidad"})
+            df_final = df_final.merge(df_dacxanalista[["DEUDOR", "NOMBRE", "ANALISTA_ACT", "ESTADO"]], 
+                                        left_on="Cod Cliente", right_on="DEUDOR", how="left")
+            df_final = df_final.rename(columns={"NOMBRE": "Razón Social", "ANALISTA_ACT": "Analista", "ESTADO": "Estado"})
             df_final = df_final.drop(columns=["DEUDOR"])
             areas_de_control = {
                 "PE01": "Post-Pago",
@@ -184,7 +185,8 @@ def main():
             df_final = df_final[df_final["Área Ctrl"].isin(areas_de_control.keys())]
             df_final["Producto"] = df_final["Área Ctrl"].apply(lambda x: areas_de_control.get(x))
             df_final["Código Pago"] = "33" + df_final["Área Ctrl"].str[-2:] + df_final["Cod Cliente"].astype(str)
-            df_final = df_final[["Cod Cliente", "Razón Social", "Área Ctrl", "Producto", "Deuda Vencida", "Código Pago", "Días Morosidad", "Analista", "Estado"]]
+            df_final = df_final[["Cod Cliente", "Razón Social", "Área Ctrl", "Producto", "Deuda Vencida", 
+                                "Código Pago", "Días Morosidad", "Analista", "Estado"]]
             df_final["Deuda Vencida"] = df_final["Deuda Vencida"].astype(float).round(2)
             df_final = df_final[df_final["Deuda Vencida"] != 0]
             df_final = df_final.sort_values(by=["Área Ctrl"], ascending=[True])
@@ -195,12 +197,11 @@ def main():
             
             formatear_excel(resultado_path)
             end = time.time()
-            messagebox.showinfo("Éxito", "Registros encontrados: "+str(df_final.shape[0])+"\nTiempo de ejecución: "+str(round(end-start,2))+" segundos.")
-            
+            messagebox.showinfo("Éxito", "Registros encontrados: " + str(df_final.shape[0]) + 
+                                "\nTiempo de ejecución: " + str(round(end-start,2)) + " segundos.")
             os.startfile(resultado_path)
-            
         except Exception as ex:
-            messagebox.showerror("Error", "Algo salió mal. Por favor, intente nuevamente.\nDetalles: "+str(ex))
+            messagebox.showerror("Error", "Algo salió mal. Por favor, intente nuevamente.\nDetalles: " + str(ex))
 
     def seleccionar_base():
         archivo_excel = filedialog.askopenfilename(
@@ -213,11 +214,11 @@ def main():
         resultado_path = directorio_base+"/DEUDAS_VENCIDAS.xlsx"
         
         query1 = ("""UPDATE RUTAS
-                    SET BASE == '"""+base_path+"""'
-                    WHERE ID == 1""")
+                    SET BASE == '""" + base_path + """'
+                    WHERE ID == 0""")
         query2 = ("""UPDATE RUTAS
-                    SET RESULTADO == '"""+resultado_path+"""'
-                    WHERE ID == 1""")
+                    SET RESULTADO == '""" + resultado_path + """'
+                    WHERE ID == 0""")
         conexion = conexionSQLite()
         try:
             cursor = conexion.cursor()
@@ -240,8 +241,8 @@ def main():
         dacxanalista_path = archivo_excel
         
         query = ("""UPDATE RUTAS
-                    SET DACXANALISTA == '"""+dacxanalista_path+"""'
-                    WHERE ID == 1""")
+                    SET DACXANALISTA == '""" + dacxanalista_path + """'
+                    WHERE ID == 0""")
         conexion = conexionSQLite()
         try:
             cursor = conexion.cursor()
@@ -255,13 +256,13 @@ def main():
 
     def ejecutar():
         progressbar.start()
-        query = ("""SELECT * FROM RUTAS WHERE ID == 1""")
+        query = """SELECT * FROM RUTAS WHERE ID == 0"""
         try:
             datos = ejecutar_query(query)
             ruta_base = datos[0][1]
             ruta_dacxa = datos[0][2]
             ruta_resultado = datos[0][3]
-            if ruta_base == None or ruta_dacxa == None or ruta_resultado == None:
+            if ruta_base is None or ruta_dacxa is None or ruta_resultado is None:
                 messagebox.showerror("Error", "Por favor, configure las rutas de los archivos.")
             elif not os.path.exists(ruta_base):
                 messagebox.showerror("Error", "No se encontraró el archivo BASE en la ruta especificada.")
@@ -276,6 +277,7 @@ def main():
 
     def crear_app():
         global app, combobox_analistas, var_ope_con_mov, var_ope_sin_mov, var_proc_liquidacion, var_proc_pre_resolucion, var_proc_resolucion, var_liquidado, boton_base, boton_dacx, boton_ejecutar, progressbar
+        
         app = CTk()
         app.title("Deudas Vencidas")
         app.iconbitmap(resource_path("./images/icono.ico"))
