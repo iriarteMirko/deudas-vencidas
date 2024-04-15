@@ -335,42 +335,42 @@ def main():
         var_ope_con_mov = BooleanVar()
         var_ope_con_mov.set(True)
         ope_con_mov = CTkCheckBox(frame_estado, text="OP. CON MOVIMIENTO", font=("Calibri",17), 
-                                    border_color="#d11515", border_width = 2, fg_color="#d11515", 
+                                    border_color="#d11515", border_width=2, fg_color="#d11515", 
                                     hover_color="#d11515", variable=var_ope_con_mov)
         ope_con_mov.grid(row=1, column=0, padx=(20, 10), pady=(10, 0), sticky="nsew")
         
         var_ope_sin_mov = BooleanVar()
         var_ope_sin_mov.set(True)
         ope_sin_mov = CTkCheckBox(frame_estado, text="OP. SIN MOVIMIENTO", font=("Calibri",17), 
-                                    border_color="#d11515", border_width = 2, fg_color="#d11515", 
+                                    border_color="#d11515", border_width=2, fg_color="#d11515", 
                                     hover_color="#d11515", variable=var_ope_sin_mov)
         ope_sin_mov.grid(row=1, column=1, padx=(10, 20), pady=(10, 0), sticky="nsew")
         
         var_proc_liquidacion = BooleanVar()
         var_proc_liquidacion.set(False)
         proc_liquidacion = CTkCheckBox(frame_estado, text="PROC. LIQUIDACION", font=("Calibri",17), 
-                                        border_color="#d11515", border_width = 2, fg_color="#d11515", 
+                                        border_color="#d11515", border_width=2, fg_color="#d11515", 
                                         hover_color="#d11515", variable=var_proc_liquidacion)
         proc_liquidacion.grid(row=2, column=0, padx=(20, 10), pady=(10, 0), sticky="nsew")
         
         var_proc_resolucion = BooleanVar()
         var_proc_resolucion.set(False)
         proc_resolucion = CTkCheckBox(frame_estado, text="PROC. RESOLUCION", font=("Calibri",17), 
-                                            border_color="#d11515", border_width = 2, fg_color="#d11515", 
+                                            border_color="#d11515", border_width=2, fg_color="#d11515", 
                                             hover_color="#d11515", variable=var_proc_resolucion)
         proc_resolucion.grid(row=2, column=1, padx=(10, 20), pady=(10, 0), sticky="nsew")
         
         var_proc_pre_resolucion = BooleanVar()
         var_proc_pre_resolucion.set(False)
         proc_pre_resolucion = CTkCheckBox(frame_estado, text="PROC. PRE RESOLUCION", font=("Calibri",17), 
-                                        border_color="#d11515", border_width = 2, fg_color="#d11515", 
+                                        border_color="#d11515", border_width=2, fg_color="#d11515", 
                                         hover_color="#d11515", variable=var_proc_pre_resolucion)
         proc_pre_resolucion.grid(row=3, column=0, padx=(20, 10), pady=(10, 20), sticky="nsew")
         
         var_liquidado = BooleanVar()
         var_liquidado.set(False)
         liquidado = CTkCheckBox(frame_estado, text="LIQUIDADO", font=("Calibri",17), border_color="#d11515", 
-                                border_width = 2, fg_color="#d11515", hover_color="#d11515", 
+                                border_width=2, fg_color="#d11515", hover_color="#d11515", 
                                 variable=var_liquidado)
         liquidado.grid(row=3, column=1, padx=(10, 20), pady=(10, 20), sticky="nsew")
         
