@@ -1,5 +1,5 @@
+from resource_path import resource_path
 import sqlite3 as sql
-from deuda_vencida import resource_path
 
 def conexionSQLite():
     try:

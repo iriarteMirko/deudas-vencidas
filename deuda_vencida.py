@@ -1,48 +1,46 @@
+from openpyxl.styles import PatternFill, Border, Side, Alignment, Font
+from openpyxl.utils import get_column_letter
+from tkinter import messagebox
+from customtkinter import *
+from resource_path import resource_path
+from conexion import *
 import pandas as pd
 import openpyxl
 import warnings
 import threading
 import time
-from openpyxl.styles import PatternFill, Border, Side, Alignment, Font
-from openpyxl.utils import get_column_letter
-from tkinter import messagebox
-from customtkinter import *
-from conexion import *
 
 warnings.filterwarnings("ignore")
 
-def resource_path(relative_path):
-    try:
-        base_path = sys._MEIPASS2
-    except Exception:
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, relative_path)
-
-def main():
-    def verificar_thread(thread):
+class App_DV():
+    def deshabilitar_botones(self):
+        self.boton_ejecutar.configure(state="disabled")
+        self.boton_base.configure(state="disabled")
+        self.boton_dacx.configure(state="disabled")
+        self.combobox_analistas.configure(state="disabled")
+    
+    def habilitar_botones(self):
+        self.boton_ejecutar.configure(state="normal")
+        self.boton_base.configure(state="normal")
+        self.boton_dacx.configure(state="normal")
+        self.combobox_analistas.configure(state="normal")
+    
+    def verificar_thread(self, thread):
         if thread.is_alive():
-            app.after(1000, verificar_thread, thread)
+            self.app.after(1000, self.verificar_thread, thread)
         else:
-            boton_ejecutar.configure(state="normal")
-            boton_base.configure(state="normal")
-            boton_dacx.configure(state="normal")
-            combobox_analistas.configure(state="normal")
-
-    def iniciar_tarea(action):
+            self.habilitar_botones()
+    
+    def iniciar_tarea(self, action):
+        self.deshabilitar_botones()
         if action == 1:
-            thread = threading.Thread(target=ejecutar)
+            thread = threading.Thread(target=self.ejecutar)
         else:
-            pass
-        
-        boton_ejecutar.configure(state="disabled")
-        boton_base.configure(state="disabled")
-        boton_dacx.configure(state="disabled")
-        combobox_analistas.configure(state="disabled")
-        
+            return
         thread.start()
-        app.after(1000, verificar_thread, thread)
-
-    def formatear_excel(excel_file):
+        self.app.after(1000, self.verificar_thread, thread)
+    
+    def formatear_excel(self, excel_file):
         try:
             wb = openpyxl.load_workbook(excel_file)
             ws = wb.active
@@ -74,17 +72,17 @@ def main():
             wb.save(excel_file)
         except Exception as ex:
             messagebox.showerror("Error", "Algo salió mal. Por favor, intente nuevamente.\nDetalles: " + str(ex))
-
-    def obtener_deudas_vencidas(base_path, dacxanalista_path, resultado_path):
+    
+    def obtener_deudas_vencidas(self, base_path, dacxanalista_path, resultado_path):
         start = time.time()
         lista_estados = []
         variables = [
-            (var_ope_con_mov, "OPERATIVO CON MOVIMIENTO"),
-            (var_ope_sin_mov, "OPERATIVO SIN MOVIMIENTO"),
-            (var_proc_liquidacion, "PROCESO DE LIQUIDACIÓN"),
-            (var_proc_pre_resolucion, "PROCESO DE PRE RESOLUCION"),
-            (var_proc_resolucion, "PROCESO DE RESOLUCIÓN"),
-            (var_liquidado, "LIQUIDADO")
+            (self.var_ope_con_mov, "OPERATIVO CON MOVIMIENTO"),
+            (self.var_ope_sin_mov, "OPERATIVO SIN MOVIMIENTO"),
+            (self.var_proc_liquidacion, "PROCESO DE LIQUIDACIÓN"),
+            (self.var_proc_pre_resolucion, "PROCESO DE PRE RESOLUCION"),
+            (self.var_proc_resolucion, "PROCESO DE RESOLUCIÓN"),
+            (self.var_liquidado, "LIQUIDADO")
         ]
         for var, estado in variables:
             if var.get():
@@ -108,8 +106,8 @@ def main():
             columnas_dacx = ["DEUDOR", "NOMBRE", "ANALISTA_ACT", "ESTADO"]
             df_dacxanalista = df_dacxanalista[columnas_dacx]
             
-            if combobox_analistas.get() != "TODOS":
-                df_dacxanalista = df_dacxanalista[df_dacxanalista["ANALISTA_ACT"] == combobox_analistas.get()]
+            if self.combobox_analistas.get() != "TODOS":
+                df_dacxanalista = df_dacxanalista[df_dacxanalista["ANALISTA_ACT"] == self.combobox_analistas.get()]
             else:
                 df_dacxanalista = df_dacxanalista[df_dacxanalista["ANALISTA_ACT"] != "SIN INFORMACION"]
             
@@ -195,15 +193,15 @@ def main():
             df_final = df_final.sort_values(by=["Días Morosidad"], ascending=[False])
             df_final.to_excel(resultado_path, index=False)
             
-            formatear_excel(resultado_path)
+            self.formatear_excel(resultado_path)
             end = time.time()
             messagebox.showinfo("Éxito", "Registros encontrados: " + str(df_final.shape[0]) + 
                                 "\nTiempo de ejecución: " + str(round(end-start,2)) + " segundos.")
             os.startfile(resultado_path)
         except Exception as ex:
             messagebox.showerror("Error", "Algo salió mal. Por favor, intente nuevamente.\nDetalles: " + str(ex))
-
-    def seleccionar_base():
+    
+    def seleccionar_base(self):
         archivo_excel = filedialog.askopenfilename(
             initialdir="/",
             title="Seleccionar archivo BASE",
@@ -231,8 +229,8 @@ def main():
         finally:
             cursor.close()
             conexion.close
-
-    def seleccionar_dacxanalista():
+    
+    def seleccionar_dacxanalista(self):
         archivo_excel = filedialog.askopenfilename(
             initialdir="/",
             title="Seleccionar archivo DACxANALISTA",
@@ -253,9 +251,9 @@ def main():
         finally:
             cursor.close()
             conexion.close
-
-    def ejecutar():
-        progressbar.start()
+    
+    def ejecutar(self):
+        self.progressbar.start()
         query = """SELECT * FROM RUTAS WHERE ID == 0"""
         try:
             datos = ejecutar_query(query)
@@ -269,22 +267,20 @@ def main():
             elif not os.path.exists(ruta_dacxa):
                 messagebox.showerror("Error", "No se encontraró el archivo DACxANALISTA en la ruta especificada.")
             else:
-                obtener_deudas_vencidas(ruta_base, ruta_dacxa, ruta_resultado)
+                self.obtener_deudas_vencidas(ruta_base, ruta_dacxa, ruta_resultado)
         except Exception as ex:
             messagebox.showerror("Error", str(ex))
         finally:
-            progressbar.stop()
-
-    def crear_app():
-        global app, combobox_analistas, var_ope_con_mov, var_ope_sin_mov, var_proc_liquidacion, var_proc_pre_resolucion, var_proc_resolucion, var_liquidado, boton_base, boton_dacx, boton_ejecutar, progressbar
-        
-        app = CTk()
-        app.title("Deudas Vencidas")
-        app.iconbitmap(resource_path("./images/icono.ico"))
-        app.resizable(False, False)
+            self.progressbar.stop()
+    
+    def crear_app(self):        
+        self.app = CTk()
+        self.app.title("Deudas Vencidas")
+        self.app.iconbitmap(resource_path("./images/icono.ico"))
+        self.app.resizable(False, False)
         set_appearance_mode("light")
         
-        main_frame = CTkFrame(app)
+        main_frame = CTkFrame(self.app)
         main_frame.pack_propagate(0)
         main_frame.pack(fill="both", expand=True)
         
@@ -299,20 +295,20 @@ def main():
         
         ruta_base = CTkLabel(frame_base, text="Ruta BASE", font=("Calibri",17,"bold"))
         ruta_base.pack(padx=(20, 20), pady=(5, 0), fill="both", expand=True, anchor="center", side="top")
-        boton_base = CTkButton(frame_base, text="Seleccionar", font=("Calibri",17), text_color="black",
+        self.boton_base = CTkButton(frame_base, text="Seleccionar", font=("Calibri",17), text_color="black",
                                 fg_color="transparent", border_color="#d11515", border_width=3, hover_color="#d11515", 
-                                width=25, corner_radius=25, command=lambda: seleccionar_base())
-        boton_base.pack(padx=(20, 20), pady=(0, 15), fill="both", anchor="center", side="bottom")
+                                width=25, corner_radius=25, command=lambda: self.seleccionar_base())
+        self.boton_base.pack(padx=(20, 20), pady=(0, 15), fill="both", anchor="center", side="bottom")
         
         frame_dacx = CTkFrame(main_frame)
         frame_dacx.grid(row=1, column=1, padx=(10, 20), pady=(20, 0), sticky="nsew")
         
         ruta_dacxa = CTkLabel(frame_dacx, text="Ruta DACxAnalista", font=("Calibri",17,"bold"))
         ruta_dacxa.pack(padx=(20, 20), pady=(5, 0), fill="both", expand=True, anchor="center", side="top")
-        boton_dacx = CTkButton(frame_dacx, text="Seleccionar", font=("Calibri",17), text_color="black",
+        self.boton_dacx = CTkButton(frame_dacx, text="Seleccionar", font=("Calibri",17), text_color="black",
                                 fg_color="transparent", border_color="#d11515", border_width=3, hover_color="#d11515", 
-                                width=25, corner_radius=25, command=lambda: seleccionar_dacxanalista())
-        boton_dacx.pack(padx=(20, 20), pady=(0, 15), fill="both", anchor="center", side="bottom")
+                                width=25, corner_radius=25, command=lambda: self.seleccionar_dacxanalista())
+        self.boton_dacx.pack(padx=(20, 20), pady=(0, 15), fill="both", anchor="center", side="bottom")
         
         frame_analista = CTkFrame(main_frame)
         frame_analista.grid(row=2, column=0, columnspan=2, padx=(20, 20), pady=(20, 0), sticky="nsew")
@@ -321,10 +317,10 @@ def main():
                     "JUAN CARLOS HUATAY", "WALTER LOPEZ", "REGION NORTE", "REGION SUR"]
         label_analista = CTkLabel(frame_analista, text="Analista Actual: ", font=("Calibri",18,"bold"))
         label_analista.pack(padx=(20, 0), pady=(15, 15), fill="both", expand=True, anchor="w", side="left")
-        combobox_analistas = CTkComboBox(frame_analista, font=("Calibri",17), width=200, values=analistas, 
+        self.combobox_analistas = CTkComboBox(frame_analista, font=("Calibri",17), width=200, values=analistas, 
                                             state="readonly", border_color="#d11515")
-        combobox_analistas.pack(padx=(0, 40), pady=(15, 15), fill="both", expand=True, anchor="w", side="right")
-        combobox_analistas.set("TODOS")
+        self.combobox_analistas.pack(padx=(0, 40), pady=(15, 15), fill="both", expand=True, anchor="w", side="right")
+        self.combobox_analistas.set("TODOS")
         
         frame_estado = CTkFrame(main_frame)
         frame_estado.grid(row=3, column=0, columnspan=2, padx=(20, 20), pady=(20, 0), sticky="nsew")
@@ -332,60 +328,62 @@ def main():
         label_estado_dac = CTkLabel(frame_estado, text="Seleccionar Estados: ", font=("Calibri",18,"bold"))
         label_estado_dac.grid(row=0, column=0, columnspan=2, padx=(20, 20), pady=(10, 0), sticky="nsew")
         
-        var_ope_con_mov = BooleanVar()
-        var_ope_con_mov.set(True)
+        self.var_ope_con_mov = BooleanVar()
+        self.var_ope_con_mov.set(True)
         ope_con_mov = CTkCheckBox(frame_estado, text="OP. CON MOVIMIENTO", font=("Calibri",17), 
                                     border_color="#d11515", border_width=2, fg_color="#d11515", 
-                                    hover_color="#d11515", variable=var_ope_con_mov)
+                                    hover_color="#d11515", variable=self.var_ope_con_mov)
         ope_con_mov.grid(row=1, column=0, padx=(20, 10), pady=(10, 0), sticky="nsew")
         
-        var_ope_sin_mov = BooleanVar()
-        var_ope_sin_mov.set(True)
+        self.var_ope_sin_mov = BooleanVar()
+        self.var_ope_sin_mov.set(True)
         ope_sin_mov = CTkCheckBox(frame_estado, text="OP. SIN MOVIMIENTO", font=("Calibri",17), 
                                     border_color="#d11515", border_width=2, fg_color="#d11515", 
-                                    hover_color="#d11515", variable=var_ope_sin_mov)
+                                    hover_color="#d11515", variable=self.var_ope_sin_mov)
         ope_sin_mov.grid(row=1, column=1, padx=(10, 20), pady=(10, 0), sticky="nsew")
         
-        var_proc_liquidacion = BooleanVar()
-        var_proc_liquidacion.set(False)
+        self.var_proc_liquidacion = BooleanVar()
+        self.var_proc_liquidacion.set(False)
         proc_liquidacion = CTkCheckBox(frame_estado, text="PROC. LIQUIDACION", font=("Calibri",17), 
                                         border_color="#d11515", border_width=2, fg_color="#d11515", 
-                                        hover_color="#d11515", variable=var_proc_liquidacion)
+                                        hover_color="#d11515", variable=self.var_proc_liquidacion)
         proc_liquidacion.grid(row=2, column=0, padx=(20, 10), pady=(10, 0), sticky="nsew")
         
-        var_proc_resolucion = BooleanVar()
-        var_proc_resolucion.set(False)
+        self.var_proc_resolucion = BooleanVar()
+        self.var_proc_resolucion.set(False)
         proc_resolucion = CTkCheckBox(frame_estado, text="PROC. RESOLUCION", font=("Calibri",17), 
                                             border_color="#d11515", border_width=2, fg_color="#d11515", 
-                                            hover_color="#d11515", variable=var_proc_resolucion)
+                                            hover_color="#d11515", variable=self.var_proc_resolucion)
         proc_resolucion.grid(row=2, column=1, padx=(10, 20), pady=(10, 0), sticky="nsew")
         
-        var_proc_pre_resolucion = BooleanVar()
-        var_proc_pre_resolucion.set(False)
+        self.var_proc_pre_resolucion = BooleanVar()
+        self.var_proc_pre_resolucion.set(False)
         proc_pre_resolucion = CTkCheckBox(frame_estado, text="PROC. PRE RESOLUCION", font=("Calibri",17), 
                                         border_color="#d11515", border_width=2, fg_color="#d11515", 
-                                        hover_color="#d11515", variable=var_proc_pre_resolucion)
+                                        hover_color="#d11515", variable=self.var_proc_pre_resolucion)
         proc_pre_resolucion.grid(row=3, column=0, padx=(20, 10), pady=(10, 20), sticky="nsew")
         
-        var_liquidado = BooleanVar()
-        var_liquidado.set(False)
+        self.var_liquidado = BooleanVar()
+        self.var_liquidado.set(False)
         liquidado = CTkCheckBox(frame_estado, text="LIQUIDADO", font=("Calibri",17), border_color="#d11515", 
                                 border_width=2, fg_color="#d11515", hover_color="#d11515", 
-                                variable=var_liquidado)
+                                variable=self.var_liquidado)
         liquidado.grid(row=3, column=1, padx=(10, 20), pady=(10, 20), sticky="nsew")
         
-        boton_ejecutar = CTkButton(main_frame, text="EJECUTAR", text_color="black", font=("Calibri",25,"bold"), 
+        self.boton_ejecutar = CTkButton(main_frame, text="EJECUTAR", text_color="black", font=("Calibri",25,"bold"), 
                                     border_color="black", border_width=3, fg_color="gray", 
-                                    hover_color="red", command=lambda: iniciar_tarea(1))
-        boton_ejecutar.grid(row=4, column=0, columnspan=2, ipady=20, padx=(20, 20), pady=(20, 0), sticky="nsew")
+                                    hover_color="red", command=lambda: self.iniciar_tarea(1))
+        self.boton_ejecutar.grid(row=4, column=0, columnspan=2, ipady=20, padx=(20, 20), pady=(20, 0), sticky="nsew")
         
-        progressbar = CTkProgressBar(main_frame, mode="indeterminate", orientation="horizontal", 
+        self.progressbar = CTkProgressBar(main_frame, mode="indeterminate", orientation="horizontal", 
                                         progress_color="#d11515", height=10, border_width=0)
-        progressbar.grid(row=5, column=0, columnspan=2, padx=(20, 20), pady=(20, 20), sticky="nsew")
-                
-        app.mainloop()
+        self.progressbar.grid(row=5, column=0, columnspan=2, padx=(20, 20), pady=(20, 20), sticky="nsew")
+        
+        self.app.mainloop()
 
-    crear_app()
+def main():
+    app = App_DV()
+    app.crear_app()
 
 if __name__ == "__main__":
     main()
