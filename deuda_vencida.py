@@ -275,8 +275,12 @@ class App_DV():
     
     def crear_app(self):        
         self.app = CTk()
-        self.app.title("Deudas Vencidas")
-        self.app.iconbitmap(resource_path("./images/icono.ico"))
+        self.app.title("Deudas Vencidas C&CD")
+        icon_path = resource_path("./images/icono.ico")
+        if os.path.isfile(icon_path):
+            self.app.iconbitmap(icon_path)
+        else:
+            messagebox.showwarning("ADVERTENCIA", "No se encontró el archivo 'icono.ico' en la ruta: " + icon_path)
         self.app.resizable(False, False)
         set_appearance_mode("light")
         
