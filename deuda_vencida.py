@@ -346,26 +346,26 @@ class App_DV():
                                     hover_color="#d11515", variable=self.var_ope_sin_mov)
         ope_sin_mov.grid(row=1, column=1, padx=(10, 20), pady=(10, 0), sticky="nsew")
         
-        self.var_proc_liquidacion = BooleanVar()
-        self.var_proc_liquidacion.set(False)
-        proc_liquidacion = CTkCheckBox(frame_estado, text="PROC. LIQUIDACION", font=("Calibri",17), 
-                                        border_color="#d11515", border_width=2, fg_color="#d11515", 
-                                        hover_color="#d11515", variable=self.var_proc_liquidacion)
-        proc_liquidacion.grid(row=2, column=0, padx=(20, 10), pady=(10, 0), sticky="nsew")
-        
         self.var_proc_resolucion = BooleanVar()
         self.var_proc_resolucion.set(False)
         proc_resolucion = CTkCheckBox(frame_estado, text="PROC. RESOLUCION", font=("Calibri",17), 
                                             border_color="#d11515", border_width=2, fg_color="#d11515", 
                                             hover_color="#d11515", variable=self.var_proc_resolucion)
-        proc_resolucion.grid(row=2, column=1, padx=(10, 20), pady=(10, 0), sticky="nsew")
+        proc_resolucion.grid(row=2, column=0, padx=(20, 10), pady=(10, 0), sticky="nsew")
         
         self.var_proc_pre_resolucion = BooleanVar()
         self.var_proc_pre_resolucion.set(False)
         proc_pre_resolucion = CTkCheckBox(frame_estado, text="PROC. PRE RESOLUCION", font=("Calibri",17), 
                                         border_color="#d11515", border_width=2, fg_color="#d11515", 
                                         hover_color="#d11515", variable=self.var_proc_pre_resolucion)
-        proc_pre_resolucion.grid(row=3, column=0, padx=(20, 10), pady=(10, 20), sticky="nsew")
+        proc_pre_resolucion.grid(row=2, column=1, padx=(10, 20), pady=(10, 0), sticky="nsew")
+        
+        self.var_proc_liquidacion = BooleanVar()
+        self.var_proc_liquidacion.set(False)
+        proc_liquidacion = CTkCheckBox(frame_estado, text="PROC. LIQUIDACION", font=("Calibri",17), 
+                                        border_color="#d11515", border_width=2, fg_color="#d11515", 
+                                        hover_color="#d11515", variable=self.var_proc_liquidacion)
+        proc_liquidacion.grid(row=3, column=0, padx=(20, 10), pady=(10, 20), sticky="nsew")
         
         self.var_liquidado = BooleanVar()
         self.var_liquidado.set(False)
