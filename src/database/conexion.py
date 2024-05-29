@@ -1,11 +1,10 @@
-from resource_path import resource_path
+from src.utils.resource_path import resource_path
 import sqlite3 as sql
 
 def conexionSQLite():
     try:
-        conexion = sql.connect(resource_path("database/db.db"))
+        conexion = sql.connect(resource_path("./db.db"))
         return conexion
-
     except sql.Error as ex:
         print("Error al conectar a la base de datos SQLite:", ex)
         return None
