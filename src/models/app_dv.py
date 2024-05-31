@@ -310,7 +310,7 @@ class App_DV():
         self.progressbar.pack(padx=10, pady=(10, 0), fill="both", expand=True, anchor="center", side="top")
         
         ############## © ##############
-        label_copyrigth = CTkLabel(main_frame, text="©Creado por Mirko Iriarte (C26823)", font=("Calibri",11), text_color="black")
+        label_copyrigth = CTkLabel(main_frame, text="© Creado por Mirko Iriarte (C26823)", font=("Calibri",11), text_color="black")
         label_copyrigth.pack(padx=10, pady=0, fill="both", expand=True, anchor="center", side="bottom")
         
         self.app.mainloop()

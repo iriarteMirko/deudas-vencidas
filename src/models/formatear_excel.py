@@ -29,7 +29,7 @@ def formatear_excel(excel_file):
                     cell.font = font_header
                     cell.alignment = Alignment(horizontal="center")
         
-        column_widths = [10.5, 30, 8.5, 23, 13.5, 12, 14, 20, 27]
+        column_widths = [11, 30, 9, 24, 14, 12, 15, 21, 28.5]
         for i, column_width in enumerate(column_widths):
             ws.column_dimensions[get_column_letter(i+1)].width = column_width
         
