@@ -45,9 +45,9 @@ class App_DV():
     def exportar(self):
         self.progressbar.start()
         try:
-            self.rutas = verificar_rutas()
-            self.reporte = Class_DV(self.rutas)
-            self.reporte.exportar_deudores()
+            rutas = verificar_rutas()
+            reporte = Class_DV(rutas)
+            reporte.exportar_deudores()
         except Exception as ex:
             messagebox.showerror("Error", str(ex))
             return
@@ -57,13 +57,10 @@ class App_DV():
     def ejecutar(self):
         self.progressbar.start()
         try:
-            analista = self.combobox_analistas.get()
-            if not hasattr(self, "reporte"):
-                self.reporte = None
-            if self.reporte is None:
-                self.rutas = verificar_rutas()
-                self.reporte = Class_DV(self.rutas)
+            rutas = verificar_rutas()
+            reporte = Class_DV(rutas)
             
+            analista = self.combobox_analistas.get()
             formato = self.var_fichero_local.get()
             dias_morosidad = self.entry_morosidad.get()
             
@@ -90,7 +87,10 @@ class App_DV():
             if len(lista_estados) == 0:
                 messagebox.showerror("Error", "Por favor, seleccione al menos un estado.")
                 return
-            self.reporte.obtener_deudas_vencidas(analista, formato, dias_morosidad, lista_estados)
+            
+            apoyo = self.var_apoyo.get()
+            
+            reporte.obtener_deudas_vencidas(analista, formato, dias_morosidad, lista_estados, apoyo)
         except Exception as ex:
             messagebox.showerror("Error", str(ex))
             return
@@ -98,7 +98,7 @@ class App_DV():
             self.progressbar.stop()
     
     def confirmar_configuracion(self):
-        self.rutas = verificar_rutas()
+        rutas = verificar_rutas()
         self.ventana_config.destroy()
     
     def ventana_rutas(self):
@@ -239,12 +239,12 @@ class App_DV():
         label_morosidad2 = CTkLabel(frame_morosidad, text="días de morosidad", font=("Calibri",15,"bold"))
         label_morosidad2.pack(padx=(0, 10), pady=10, fill="y", anchor="center", side="left")
         
-        self.var_apoyos = BooleanVar()
-        self.var_apoyos.set(False)
-        apoyos = CTkCheckBox(
+        self.var_apoyo = BooleanVar()
+        self.var_apoyo.set(False)
+        apoyo = CTkCheckBox(
             frame_morosidad, text="APOYOS", font=("Calibri",15), border_color="#d11515", 
-            border_width=2, fg_color="#d11515", hover_color="#d11515", variable=self.var_apoyos)
-        apoyos.pack(padx=10, pady=10, anchor="center", side="right")
+            border_width=2, fg_color="#d11515", hover_color="#d11515", variable=self.var_apoyo)
+        apoyo.pack(padx=10, pady=10, anchor="center", side="right")
         
         ############## SELECCIONAR ESTADOS ##############
         frame_estado = CTkFrame(main_frame)

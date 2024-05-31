@@ -18,12 +18,11 @@ class Class_DV():
         if not os.path.exists(rutas[2] + "/REPORTE FINAL"):
             os.makedirs(rutas[2] + "/REPORTE FINAL")
             
-        self.ruta_final = rutas[2] + "/REPORTE FINAL/DEUDA_VENCIDA_" + fecha_actual + ".xlsx"
+        self.ruta_final = rutas[2] + "/REPORTE FINAL/DEUDAS_VENCIDAS_" + fecha_actual + ".xlsx"
     
     def exportar_deudores(self):
         df_dacxanalista = pd.read_excel(self.ruta_dacxa, sheet_name="Base_NUEVA")
         df_dacxanalista[["DEUDOR"]].to_excel(self.sap, index=False)
-        self.df_dacxanalista = df_dacxanalista
         os.startfile(self.sap)
     
     def fichero_local(self):
@@ -34,31 +33,28 @@ class Class_DV():
         df_base = df_base.iloc[:-3, :]
         df_base.columns = df_base.iloc[0]
         df_base = df_base[1:]
-        self.df_base = df_base
+        self.df_base = df_base.rename(columns={"     Importe en ML": "Importe"})
     
-    def obtener_deudas_vencidas(self, analista, formato, dias_morosidad, lista_estados):
+    def obtener_deudas_vencidas(self, analista, formato, dias_morosidad, lista_estados, apoyo):
         start = time.time()
         try:
-            if not hasattr(self, "df_dacxanalista"):
-                self.df_dacxanalista = None
-            if self.df_dacxanalista is None:
-                df_dacxanalista = pd.read_excel(self.ruta_dacxa, sheet_name="Base_NUEVA")
-                self.df_dacxanalista = df_dacxanalista
-            self.df_dacxanalista = self.df_dacxanalista[["DEUDOR", "NOMBRE", "ANALISTA_ACT", "ESTADO"]]
+            df_dacxanalista = pd.read_excel(self.ruta_dacxa, sheet_name="Base_NUEVA")
+            df_dacxanalista = df_dacxanalista[["DEUDOR", "NOMBRE", "ANALISTA_ACT", "ESTADO"]]
             if analista != "TODOS":
-                self.df_dacxanalista = self.df_dacxanalista[self.df_dacxanalista["ANALISTA_ACT"] == analista]
-            self.df_dacxanalista = self.df_dacxanalista[self.df_dacxanalista["ANALISTA_ACT"] != "SIN INFORMACION"]
-            lista_cartera = self.df_dacxanalista["DEUDOR"].tolist()
-            self.df_dacxanalista = self.df_dacxanalista[self.df_dacxanalista["ESTADO"].isin(lista_estados)]
+                df_dacxanalista = df_dacxanalista[df_dacxanalista["ANALISTA_ACT"] == analista]
+            df_dacxanalista = df_dacxanalista[df_dacxanalista["ANALISTA_ACT"] != "SIN INFORMACION"]
+            lista_cartera = df_dacxanalista["DEUDOR"].tolist()
+            df_dacxanalista = df_dacxanalista[df_dacxanalista["ESTADO"].isin(lista_estados)]
             
             if formato==False:
                 self.fichero_local()
             else:
                 self.df_base = pd.read_excel(self.ruta_hoja)
+                self.df_base = self.df_base.rename(columns={"Importe en ML": "Importe"})
             
+            self.df_base = self.df_base[self.df_base["Cuenta"].notna()]
             self.df_base.dropna(subset=["ACC","Cuenta"], inplace=True)
             self.df_base = self.df_base.reset_index(drop=True)
-            self.df_base = self.df_base.rename(columns={"Importe en ML": "Importe"})
             self.df_base = self.df_base[["ACC", "Cuenta", "Demora", "Importe"]]
             self.df_base["Demora"] = self.df_base["Demora"].astype("Int64")
             self.df_base["Importe"] = self.df_base["Importe"].astype(float)
@@ -108,8 +104,11 @@ class Class_DV():
             df_final = grouped_df.reset_index()[["Cuenta", "ACC", "Saldo Final", "Demora"]]
             df_final = df_final.rename(columns={"Cuenta": "Cod Cliente", "ACC": "Área Ctrl", 
                                                 "Saldo Final": "Deuda Vencida", "Demora": "Días Morosidad"})
-            df_final = df_final.merge(self.df_dacxanalista, left_on="Cod Cliente", right_on="DEUDOR", how="left")
+            df_final = df_final.merge(df_dacxanalista, left_on="Cod Cliente", right_on="DEUDOR", how="left")
             df_final = df_final.rename(columns={"NOMBRE": "Razón Social", "ANALISTA_ACT": "Analista", "ESTADO": "Estado"})
+            df_final.dropna(subset=["Razón Social"], inplace=True)
+            df_final.dropna(subset=["Analista"], inplace=True)
+            df_final.dropna(subset=["Estado"], inplace=True)
             df_final = df_final.drop(columns=["DEUDOR"])
             areas_de_control = {
                 "PE01": "Post-Pago",

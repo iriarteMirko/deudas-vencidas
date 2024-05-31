@@ -20,12 +20,10 @@ def verificar_rutas():
                 "Las siguientes rutas no han sido seleccionadas:" 
                 + "\n("+", ".join(rutas_vacias)+")\n"
                 + "\nPor favor seleccione las rutas faltantes.")
-            return None
         else:
             return rutas_general
     except Exception as ex:
         messagebox.showerror("Error", "Error al verificar las rutas:" + str(ex))
-        return None
 
 def seleccionar_archivo(nombre):
     try:
@@ -38,7 +36,6 @@ def seleccionar_archivo(nombre):
         set_ruta(ruta, nombre)
     except Exception as ex:
         messagebox.showerror("Error", "Error al seleccionar el archivo:" + str(ex))
-        return
 
 def seleccionar_carpeta(nombre):
     try:
@@ -50,4 +47,3 @@ def seleccionar_carpeta(nombre):
         set_ruta(ruta, nombre)
     except Exception as ex:
         messagebox.showerror("Error", "Error al seleccionar la carpeta:" + str(ex))
-        return
