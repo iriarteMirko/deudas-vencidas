@@ -44,13 +44,9 @@ class App_DV():
     
     def exportar(self):
         self.progressbar.start()
-        self.rutas = verificar_rutas()
-        if self.rutas == None:
-            self.progressbar.stop()
-            return
         try:
-            analista = self.combobox_analistas.get()
-            self.reporte = Class_DV(self.rutas, analista)
+            self.rutas = verificar_rutas()
+            self.reporte = Class_DV(self.rutas)
             self.reporte.exportar_deudores()
         except Exception as ex:
             messagebox.showerror("Error", str(ex))
@@ -61,6 +57,13 @@ class App_DV():
     def ejecutar(self):
         self.progressbar.start()
         try:
+            analista = self.combobox_analistas.get()
+            if not hasattr(self, "reporte"):
+                self.reporte = None
+            if self.reporte is None:
+                self.rutas = verificar_rutas()
+                self.reporte = Class_DV(self.rutas)
+            
             formato = self.var_fichero_local.get()
             dias_morosidad = self.entry_morosidad.get()
             
@@ -74,21 +77,20 @@ class App_DV():
                 messagebox.showerror("Error", "Por favor, ingrese un número mayor a 0.")
                 return
             
-            variables = {
-                self.var_ope_con_mov:"OPERATIVO CON MOVIMIENTO",
-                self.var_ope_sin_mov:"OPERATIVO SIN MOVIMIENTO",
-                self.var_proc_liquidacion:"PROCESO DE LIQUIDACIÓN",
-                self.var_proc_pre_resolucion:"PROCESO DE PRE RESOLUCION",
-                self.var_proc_resolucion:"PROCESO DE RESOLUCIÓN",
-                self.var_liquidado:"LIQUIDADO"
-            }
+            variables = [
+                (self.var_ope_con_mov, "OPERATIVO CON MOVIMIENTO"),
+                (self.var_ope_sin_mov, "OPERATIVO SIN MOVIMIENTO"),
+                (self.var_proc_liquidacion, "PROCESO DE LIQUIDACIÓN"),
+                (self.var_proc_pre_resolucion, "PROCESO DE PRE RESOLUCION"),
+                (self.var_proc_resolucion, "PROCESO DE RESOLUCIÓN"),
+                (self.var_liquidado, "LIQUIDADO")
+            ]
             
-            lista_estados = [estado for var, estado in variables.items() if var.get()]
+            lista_estados = [var[1] for var in variables if var[0].get()]
             if len(lista_estados) == 0:
                 messagebox.showerror("Error", "Por favor, seleccione al menos un estado.")
                 return
-            
-            self.reporte.obtener_deudas_vencidas(formato, dias_morosidad, lista_estados)
+            self.reporte.obtener_deudas_vencidas(analista, formato, dias_morosidad, lista_estados)
         except Exception as ex:
             messagebox.showerror("Error", str(ex))
             return

@@ -7,20 +7,18 @@ import os
 
 
 class Class_DV():
-    def __init__(self, rutas, analista):
+    def __init__(self, rutas):
         fecha_actual = datetime.today().strftime("%d.%m.%Y")
-        self.rutas = rutas
-        self.ruta_dacxa = rutas[1]
-        self.celulares = rutas[2]
-        self.ruta_hoja = rutas[3] + "/FBL5N_HOJA.xlsx"
-        self.ruta_fichero = rutas[3] + "/FBL5N_FICHERO.xlsx"
-        self.sap = rutas[3] + "/SAP.xlsx"
+        self.ruta_dacxa = rutas[0]
+        self.celulares = rutas[1]
+        self.ruta_hoja = rutas[2] + "/DEUDAS_VENCIDAS_HOJA.xlsx"
+        self.ruta_fichero = rutas[2] + "/DEUDAS_VENCIDAS_FICHERO.xlsx"
+        self.sap = rutas[2] + "/SAP.xlsx"
         
-        if not os.path.exists(rutas[3] + "/REPORTE FINAL"):
-            os.makedirs(rutas[3] + "/REPORTE FINAL")
+        if not os.path.exists(rutas[2] + "/REPORTE FINAL"):
+            os.makedirs(rutas[2] + "/REPORTE FINAL")
             
-        self.ruta_final = rutas[3] + "/REPORTE FINAL/DEUDA_VENCIDA_" + fecha_actual + ".xlsx"
-        self.analista = analista
+        self.ruta_final = rutas[2] + "/REPORTE FINAL/DEUDA_VENCIDA_" + fecha_actual + ".xlsx"
     
     def exportar_deudores(self):
         df_dacxanalista = pd.read_excel(self.ruta_dacxa, sheet_name="Base_NUEVA")
@@ -38,20 +36,22 @@ class Class_DV():
         df_base = df_base[1:]
         self.df_base = df_base
     
-    def obtener_deudas_vencidas(self, formato, dias_morosidad, lista_estados):
+    def obtener_deudas_vencidas(self, analista, formato, dias_morosidad, lista_estados):
         start = time.time()
         try:
+            if not hasattr(self, "df_dacxanalista"):
+                self.df_dacxanalista = None
             if self.df_dacxanalista is None:
                 df_dacxanalista = pd.read_excel(self.ruta_dacxa, sheet_name="Base_NUEVA")
                 self.df_dacxanalista = df_dacxanalista
             self.df_dacxanalista = self.df_dacxanalista[["DEUDOR", "NOMBRE", "ANALISTA_ACT", "ESTADO"]]
-            if self.analista != "TODOS":
-                self.df_dacxanalista = self.df_dacxanalista[self.df_dacxanalista["ANALISTA_ACT"] == self.analista]
+            if analista != "TODOS":
+                self.df_dacxanalista = self.df_dacxanalista[self.df_dacxanalista["ANALISTA_ACT"] == analista]
             self.df_dacxanalista = self.df_dacxanalista[self.df_dacxanalista["ANALISTA_ACT"] != "SIN INFORMACION"]
             lista_cartera = self.df_dacxanalista["DEUDOR"].tolist()
             self.df_dacxanalista = self.df_dacxanalista[self.df_dacxanalista["ESTADO"].isin(lista_estados)]
             
-            if formato:
+            if formato==False:
                 self.fichero_local()
             else:
                 self.df_base = pd.read_excel(self.ruta_hoja)
