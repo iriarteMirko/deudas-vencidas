@@ -229,7 +229,7 @@ class App_DV():
         frame_morosidad.pack(padx=10, pady=(10, 0), fill="both", expand=True, anchor="center", side="top")
         
         label_morosidad = CTkLabel(frame_morosidad, text="A partir de", font=("Calibri",15,"bold"))
-        label_morosidad.pack(padx=(10, 0), pady=10, fill="y", anchor="center", side="left")
+        label_morosidad.pack(padx=(20, 0), pady=10, fill="y", anchor="center", side="left")
         
         self.entry_morosidad = CTkEntry(frame_morosidad, font=("Calibri",15), width=50, border_color="#d11515")
         self.entry_morosidad.pack(padx=5, pady=10, fill="y", anchor="center", side="left")
@@ -241,6 +241,8 @@ class App_DV():
         
         self.var_apoyo = BooleanVar()
         self.var_apoyo.set(False)
+        # verifica si el combobox NO ES "REGION NORTE" o "REGION SUR" para habilitar el checkbox
+        self.var_apoyo.trace("w", lambda *args: self.var_apoyo.set(False) and apoyo.configure(state="disable") if self.combobox_analistas.get()=="REGION NORTE" or self.combobox_analistas.get()=="REGION SUR" else apoyo.configure(state="normal"))
         apoyo = CTkCheckBox(
             frame_morosidad, text="APOYOS", font=("Calibri",15), border_color="#d11515", 
             border_width=2, fg_color="#d11515", hover_color="#d11515", variable=self.var_apoyo)
