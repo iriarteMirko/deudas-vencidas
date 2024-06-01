@@ -11,6 +11,16 @@ class App_DV():
     def abrir_manual(self):
         os.startfile(resource_path("src/doc/MANUAL_APP_DEUDAS_VENCIDAS.docx"))
     
+    def centrar_ventana(self, ventana):
+        screen_width = ventana.winfo_screenwidth()
+        screen_height = ventana.winfo_screenheight()
+        ventana.update_idletasks()
+        ventana_width = ventana.winfo_reqwidth()
+        ventana_height = ventana.winfo_reqheight()
+        x = (screen_width - ventana_width) // 2
+        y = (screen_height - ventana_height) // 2
+        ventana.geometry(f"+{x}+{y}")
+    
     def deshabilitar_botones(self):
         self.boton_ejecutar.configure(state="disabled")
         self.boton_deudores.configure(state="disabled")
@@ -65,13 +75,10 @@ class App_DV():
             dias_morosidad = self.entry_morosidad.get()
             
             if dias_morosidad == "":
-                messagebox.showerror("Error", "Por favor, ingrese los días de morosidad (>0).")
+                messagebox.showerror("Error", "Por favor, ingrese los días de morosidad (>=1).")
                 return
             elif not dias_morosidad.isdigit():
-                messagebox.showerror("Error", "Por favor, ingrese un número válido.")
-                return
-            elif int(dias_morosidad) <= 0:
-                messagebox.showerror("Error", "Por favor, ingrese un número mayor a 0.")
+                messagebox.showerror("Error", "Por favor, ingrese un número válido (>=1).")
                 return
             
             variables = [
@@ -98,7 +105,7 @@ class App_DV():
             self.progressbar.stop()
     
     def confirmar_configuracion(self):
-        rutas = verificar_rutas()
+        verificar_rutas()
         self.ventana_config.destroy()
     
     def ventana_rutas(self):
@@ -145,6 +152,8 @@ class App_DV():
             fg_color="transparent", border_color="black", border_width=2, hover_color="#d11515",
             width=100, height=10, corner_radius=5, command=self.confirmar_configuracion)
         boton_confirmar.pack(ipady=2, padx=10, pady=(0,10))
+        
+        self.centrar_ventana(self.ventana_config)
     
     def crear_app(self):
         self.app = CTk()
@@ -172,14 +181,14 @@ class App_DV():
         image_duda = CTkImage(image, size=(15, 15))
         self.boton_duda = CTkButton(
             frame_title, image=image_duda, text="", corner_radius=25, border_color="#d11515",
-            fg_color="transparent", hover_color="#d11515", width=50, command=lambda: self.abrir_manual())
+            fg_color="transparent", hover_color="#d11515", width=50, command=self.abrir_manual)
         self.boton_duda.pack(padx=5, pady=5, ipadx=0, ipady=5, anchor="center", side="left")
         
         image = PIL.Image.open(resource_path("src/images/config.png"))
         image_config = CTkImage(image, size=(15, 15))
         self.boton_config = CTkButton(
             frame_title, image=image_config, text="", corner_radius=25, border_color="#d11515",
-            fg_color="transparent", hover_color="#d11515", width=50, command=lambda: self.ventana_rutas())
+            fg_color="transparent", hover_color="#d11515", width=50, command=self.ventana_rutas)
         self.boton_config.pack(padx=(0,5), pady=5, ipadx=0, ipady=5, anchor="center", side="left")
         
         ############## SELECCIONAR FORMADO ##############
@@ -313,4 +322,5 @@ class App_DV():
         label_copyrigth = CTkLabel(main_frame, text="© Creado por Mirko Iriarte (C26823)", font=("Calibri",11), text_color="black")
         label_copyrigth.pack(padx=10, pady=0, fill="both", expand=True, anchor="center", side="bottom")
         
+        self.centrar_ventana(self.app)
         self.app.mainloop()

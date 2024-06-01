@@ -58,6 +58,7 @@ class Class_DV():
             self.df_base = self.df_base[["ACC", "Cuenta", "Demora", "Importe"]]
             self.df_base["Demora"] = self.df_base["Demora"].astype("Int64")
             self.df_base["Importe"] = self.df_base["Importe"].astype(float)
+            self.df_base = self.df_base[self.df_base["Demora"] >= int(dias_morosidad)]
             self.df_base = self.df_base.reset_index(drop=True)
             
             self.df_base = self.df_base[self.df_base["Cuenta"].isin(lista_cartera)]
