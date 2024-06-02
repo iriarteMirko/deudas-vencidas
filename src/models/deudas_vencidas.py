@@ -43,7 +43,8 @@ class Deudas_Vencidas():
         start = time.time()
         try:
             df_dacxanalista = pd.read_excel(self.ruta_dacxa, sheet_name="Base_NUEVA", usecols=["DEUDOR", "NOMBRE", "ANALISTA_ACT", "ESTADO"])
-            
+            df_dacxanalista["DEUDOR"] = df_dacxanalista["DEUDOR"].astype("Int64").astype(str)
+            # Verifica si se debe incluir los apoyos
             if apoyo:
                 lista_cartera = df_dacxanalista[df_dacxanalista["ANALISTA_ACT"] == analista]["DEUDOR"].tolist()
                 validar_apoyos = Validar_Apoyos(self.ruta_dacxa, self.ruta_vacaciones, self.ruta_apoyos, analista)
@@ -56,10 +57,10 @@ class Deudas_Vencidas():
                 else:
                     df_dacxanalista = df_dacxanalista[df_dacxanalista["ANALISTA_ACT"] != "SIN INFORMACION"]
                 ruta_final = self.ruta_final
-            
+            # Indica que estados se deben considerar
             df_dacxanalista = df_dacxanalista[df_dacxanalista["ESTADO"].isin(lista_estados)]
             lista_deudores = df_dacxanalista["DEUDOR"].tolist()
-            
+            # Selecciona el formato hoja o fichero
             if formato==False:
                 self.fichero_local()
             else:
@@ -67,6 +68,7 @@ class Deudas_Vencidas():
                 self.df_base = self.df_base.rename(columns={"Importe en ML": "Importe"})
             
             self.df_base = self.df_base[self.df_base["Cuenta"].notna()]
+            self.df_base["Cuenta"] = self.df_base["Cuenta"].astype("Int64").astype(str)
             self.df_base.dropna(subset=["ACC","Cuenta"], inplace=True)
             self.df_base = self.df_base.reset_index(drop=True)
             self.df_base = self.df_base[["ACC", "Cuenta", "Demora", "Importe"]]
