@@ -172,6 +172,16 @@ class App_DV():
         else:
             self.checkbox_apoyo.configure(state="normal")
     
+    def check_estado_state(self, *args):
+        if self.var_apoyo.get():
+            self.var_liquidado.set(False)
+            self.var_proc_liquidacion.set(False)
+            self.proc_liquidacion.configure(state="disabled")
+            self.liquidado.configure(state="disabled")
+        else:
+            self.proc_liquidacion.configure(state="normal")
+            self.liquidado.configure(state="normal")
+    
     def crear_app(self):
         self.app = CTk()
         self.app.title("Deudas Vencidas C&CD")
@@ -201,7 +211,7 @@ class App_DV():
             fg_color="transparent", hover_color="#d11515", width=50, command=self.abrir_manual)
         self.boton_duda.pack(padx=5, pady=5, ipadx=0, ipady=5, anchor="center", side="left")
         
-        image = PIL.Image.open(resource_path("src/images/config.png"))
+        image = PIL.Image.open(resource_path("src/images/config.ico"))
         image_config = CTkImage(image, size=(15, 15))
         self.boton_config = CTkButton(
             frame_title, image=image_config, text="", corner_radius=25, border_color="#d11515",
@@ -314,17 +324,19 @@ class App_DV():
         
         self.var_proc_liquidacion = BooleanVar()
         self.var_proc_liquidacion.set(False)
-        proc_liquidacion = CTkCheckBox(
+        self.proc_liquidacion = CTkCheckBox(
             frame_estado, text="PROC. LIQUIDACION", font=("Calibri",15), border_color="#d11515", 
             border_width=2, fg_color="#d11515", hover_color="#d11515", variable=self.var_proc_liquidacion)
-        proc_liquidacion.grid(row=3, column=0, padx=(20, 10), pady=10, sticky="nsew")
+        self.proc_liquidacion.grid(row=3, column=0, padx=(20, 10), pady=10, sticky="nsew")
+        self.var_apoyo.trace_add("write", self.check_estado_state)
         
         self.var_liquidado = BooleanVar()
         self.var_liquidado.set(False)
-        liquidado = CTkCheckBox(
+        self.liquidado = CTkCheckBox(
             frame_estado, text="LIQUIDADO", font=("Calibri",15), border_color="#d11515", 
             border_width=2, fg_color="#d11515", hover_color="#d11515", variable=self.var_liquidado)
-        liquidado.grid(row=3, column=1, padx=(10, 20), pady=10, sticky="nsew")
+        self.liquidado.grid(row=3, column=1, padx=(10, 20), pady=10, sticky="nsew")
+        self.var_apoyo.trace_add("write", self.check_estado_state)
         
         ############## EJECUTAR ##############
         self.boton_ejecutar = CTkButton(
