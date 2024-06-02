@@ -45,13 +45,14 @@ class App_DV():
         self.boton_config.configure(state="normal")
         self.combobox_analistas.configure(state="normal")
         self.entry_morosidad.configure(state="normal")
-        self.checkbox_apoyo.configure(state="normal")
         self.checkbox_hoja.configure(state="normal")
         self.checkbox_fichero.configure(state="normal")
         self.ope_con_mov.configure(state="normal")
         self.ope_sin_mov.configure(state="normal")
         self.proc_resolucion.configure(state="normal")
         self.proc_pre_resolucion.configure(state="normal")
+        if self.var_analista.get() not in ["TODOS", "WALTER LOPEZ", "REGION NORTE", "REGION SUR"]:
+            self.checkbox_apoyo.configure(state="normal")
         if not self.var_apoyo.get():
             self.proc_liquidacion.configure(state="normal")
             self.liquidado.configure(state="normal")
