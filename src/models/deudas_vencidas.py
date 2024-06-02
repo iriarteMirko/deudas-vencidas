@@ -22,6 +22,7 @@ class Deudas_Vencidas():
             os.makedirs(rutas[2] + "/REPORTE FINAL")
             
         self.ruta_final = rutas[2] + "/REPORTE FINAL/DEUDAS_VENCIDAS_" + fecha_actual + ".xlsx"
+        self.ruta_final_apoyos = rutas[2] + "/REPORTE FINAL/DEUDAS_VENCIDAS_APOYOS_" + fecha_actual + ".xlsx"
     
     def exportar_deudores(self):
         df_dacxanalista = pd.read_excel(self.ruta_dacxa, sheet_name="Base_NUEVA")
@@ -41,19 +42,23 @@ class Deudas_Vencidas():
     def obtener_deudas_vencidas(self, analista, formato, dias_morosidad, lista_estados, apoyo):
         start = time.time()
         try:
-            df_dacxanalista = pd.read_excel(self.ruta_dacxa, sheet_name="Base_NUEVA")
-            df_dacxanalista = df_dacxanalista[["DEUDOR", "NOMBRE", "ANALISTA_ACT", "ESTADO"]]
+            df_dacxanalista = pd.read_excel(self.ruta_dacxa, sheet_name="Base_NUEVA", usecols=["DEUDOR", "NOMBRE", "ANALISTA_ACT", "ESTADO"])
+            
             if apoyo:
-                vacaciones = Validar_Apoyos(self.ruta_vacaciones, self.ruta_apoyos)
-                lista_analistas = vacaciones.obtener_analistas()
-                lista_analistas.append(analista)
-                df_dacxanalista = df_dacxanalista[df_dacxanalista["ANALISTA_ACT"].isin(lista_analistas)]
-            elif analista != "TODOS":
-                df_dacxanalista = df_dacxanalista[df_dacxanalista["ANALISTA_ACT"] == analista]
+                lista_cartera = df_dacxanalista[df_dacxanalista["ANALISTA_ACT"] == analista]["DEUDOR"].tolist()
+                validar_apoyos = Validar_Apoyos(self.ruta_dacxa, self.ruta_vacaciones, self.ruta_apoyos, analista)
+                lista_apoyos = validar_apoyos.obtener_deudores()
+                df_dacxanalista = df_dacxanalista[df_dacxanalista["DEUDOR"].isin(list(set(lista_cartera + lista_apoyos)))]
+                ruta_final = self.ruta_final_apoyos
             else:
-                df_dacxanalista = df_dacxanalista[df_dacxanalista["ANALISTA_ACT"] != "SIN INFORMACION"]
-            lista_cartera = df_dacxanalista["DEUDOR"].tolist()
+                if analista != "TODOS":
+                    df_dacxanalista = df_dacxanalista[df_dacxanalista["ANALISTA_ACT"] == analista]
+                else:
+                    df_dacxanalista = df_dacxanalista[df_dacxanalista["ANALISTA_ACT"] != "SIN INFORMACION"]
+                ruta_final = self.ruta_final
+            
             df_dacxanalista = df_dacxanalista[df_dacxanalista["ESTADO"].isin(lista_estados)]
+            lista_deudores = df_dacxanalista["DEUDOR"].tolist()
             
             if formato==False:
                 self.fichero_local()
@@ -69,7 +74,7 @@ class Deudas_Vencidas():
             self.df_base["Importe"] = self.df_base["Importe"].astype(float)
             self.df_base = self.df_base.reset_index(drop=True)
             
-            self.df_base = self.df_base[self.df_base["Cuenta"].isin(lista_cartera)]
+            self.df_base = self.df_base[self.df_base["Cuenta"].isin(lista_deudores)]
             
             self.df_base["Status"] = self.df_base["Importe"].apply(lambda x: "DEUDA" if x > 0 else "SALDOS A FAVOR")
             self.df_base["Tipo Deuda"] = self.df_base["Demora"].apply(lambda x: "CORRIENTE" if x <= 0 else "VENCIDA")
@@ -120,10 +125,8 @@ class Deudas_Vencidas():
                                                 "Saldo Final": "Deuda Vencida", "Demora": "Días Morosidad"})
             df_final = df_final.merge(df_dacxanalista, left_on="Cod Cliente", right_on="DEUDOR", how="left")
             df_final = df_final.rename(columns={"NOMBRE": "Razón Social", "ANALISTA_ACT": "Analista", "ESTADO": "Estado"})
-            df_final.dropna(subset=["Razón Social"], inplace=True)
-            df_final.dropna(subset=["Analista"], inplace=True)
-            df_final.dropna(subset=["Estado"], inplace=True)
-            df_final = df_final.drop(columns=["DEUDOR"])
+            df_final.dropna(subset=["Razón Social","Analista","Estado"], inplace=True)
+            df_final.drop(columns=["DEUDOR"], inplace=True)
             areas_de_control = {
                 "PE01": "Post-Pago",
                 "PE02": "Pre-Pago",
@@ -154,13 +157,13 @@ class Deudas_Vencidas():
             df_final = df_final.sort_values(by=["Deuda Vencida"], ascending=[False])
             df_final = df_final.sort_values(by=["Días Morosidad"], ascending=[False])
             df_final = df_final.reset_index(drop=True)
-            df_final.to_excel(self.ruta_final, index=False)
-            formatear_excel(self.ruta_final)
+            df_final.to_excel(ruta_final, index=False)
+            formatear_excel(ruta_final)
             end = time.time()
             messagebox.showinfo(
                 "Éxito", "Registros encontrados: " + str(df_final.shape[0]) + 
                 "\nTiempo de ejecución: " + str(round(end-start,2)) + " segundos.")
-            os.startfile(self.ruta_final)
+            os.startfile(ruta_final)
         except Exception as ex:
             messagebox.showerror("Error", "Algo salió mal. Por favor, intente nuevamente.\nDetalles: " + str(ex))
             return None
