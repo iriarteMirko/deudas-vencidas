@@ -1,8 +1,8 @@
-from customtkinter import *
-from tkinter import messagebox
-from src.models.deuda_vencida import Class_DV
+from src.models.deudas_vencidas import Deudas_Vencidas
 from src.models.rutas import verificar_rutas, seleccionar_archivo, seleccionar_carpeta
 from src.utils.resource_path import resource_path
+from tkinter import messagebox
+from customtkinter import *
 import threading
 import PIL.Image
 
@@ -56,7 +56,7 @@ class App_DV():
         self.progressbar.start()
         try:
             rutas = verificar_rutas()
-            reporte = Class_DV(rutas)
+            reporte = Deudas_Vencidas(rutas)
             reporte.exportar_deudores()
         except Exception as ex:
             messagebox.showerror("Error", str(ex))
@@ -68,7 +68,7 @@ class App_DV():
         self.progressbar.start()
         try:
             rutas = verificar_rutas()
-            reporte = Class_DV(rutas)
+            reporte = Deudas_Vencidas(rutas)
             
             analista = self.combobox_analistas.get()
             formato = self.var_fichero_local.get()
@@ -78,6 +78,9 @@ class App_DV():
                 messagebox.showerror("Error", "Por favor, ingrese los días de morosidad (>=1).")
                 return
             elif not dias_morosidad.isdigit():
+                messagebox.showerror("Error", "Por favor, ingrese un número válido (>=1).")
+                return
+            elif int(dias_morosidad) < 1:
                 messagebox.showerror("Error", "Por favor, ingrese un número válido (>=1).")
                 return
             
@@ -126,13 +129,13 @@ class App_DV():
             frame_botones1, text="DacxAnalista", font=("Calibri",12), text_color="black",
             fg_color="transparent", border_color="black", border_width=2, hover_color="#d11515",
             width=100, corner_radius=25, command=lambda: seleccionar_archivo("DACXANALISTA"))
-        file_dacxanalista.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+        file_dacxanalista.pack(fill="both", expand=True, padx=10, pady=10, side="left")
         
         file_celulares = CTkButton(
             frame_botones1, text="Base Celulares", font=("Calibri",12), text_color="black",
             fg_color="transparent", border_color="black", border_width=2, hover_color="#d11515",
             width=100, corner_radius=25, command=lambda: seleccionar_archivo("CELULARES"))
-        file_celulares.grid(row=0, column=1, padx=(0,10), pady=10, sticky="nsew")
+        file_celulares.pack(fill="both", expand=True, padx=(0,10), pady=10, side="left")
         
         titulo2 = CTkLabel(self.ventana_config, text="Seleccionar Carpetas", font=("Calibri",12,"bold"))
         titulo2.pack(fill="both", expand=True, padx=10, pady=0)
@@ -141,11 +144,17 @@ class App_DV():
         frame_botones2.pack_propagate("True")
         frame_botones2.pack(fill="both", expand=True, padx=10, pady=(0,10))
         
-        folder_base = CTkButton(
-            frame_botones2, text="Carpeta Deudas Vencidas", font=("Calibri",12), text_color="black", 
+        folder_dv = CTkButton(
+            frame_botones2, text="Deudas Vencidas", font=("Calibri",12), text_color="black", 
             fg_color="transparent", border_color="black", border_width=2, hover_color="#d11515", 
             width=100, corner_radius=25, command=lambda: seleccionar_carpeta("DEUDAS VENCIDAS"))
-        folder_base.pack(fill="both", expand=True, padx=10, pady=10)
+        folder_dv.pack(fill="both", expand=True, padx=10, pady=10, side="left")
+        
+        folder_vacaciones = CTkButton(
+            frame_botones2, text="Vacaciones", font=("Calibri",12), text_color="black", 
+            fg_color="transparent", border_color="black", border_width=2, hover_color="#d11515", 
+            width=100, corner_radius=25, command=lambda: seleccionar_carpeta("VACACIONES"))
+        folder_vacaciones.pack(fill="both", expand=True, padx=(0,10), pady=10, side="left")
         
         boton_confirmar = CTkButton(
             self.ventana_config, text="Confirmar", font=("Calibri",12), text_color="black",
@@ -236,12 +245,12 @@ class App_DV():
         label_analista = CTkLabel(frame_analista, text="Analista Actual: ", font=("Calibri",15,"bold"))
         label_analista.pack(padx=(20, 0), pady=10, fill="both", expand=True, anchor="e", side="left")
         
+        self.var_analista = StringVar(value="TODOS")
         self.combobox_analistas = CTkComboBox(
             frame_analista, values=analistas, font=("Calibri",15), border_color="#d11515", width=200, state="readonly")
         self.combobox_analistas.pack(padx=(0, 20), pady=10, fill="y", expand=True, anchor="w", side="left")
         self.combobox_analistas.set("TODOS")
-        self.var_analista = StringVar(value="TODOS")
-        self.combobox_analistas.configure(variable=self.var_analista)
+        self.combobox_analistas.configure(variable=self.var_analista, state="readonly")
         
         ############## DIAS DE MOROSIDAD ##############
         frame_morosidad = CTkFrame(main_frame)

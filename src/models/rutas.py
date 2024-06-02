@@ -1,4 +1,4 @@
-from ..database.conexion import get_rutas, set_ruta
+from src.database.conexion import get_rutas, set_ruta
 from customtkinter import filedialog
 from tkinter import messagebox
 
