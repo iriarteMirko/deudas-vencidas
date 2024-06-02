@@ -27,6 +27,16 @@ class App_DV():
         self.boton_duda.configure(state="disabled")
         self.boton_config.configure(state="disabled")
         self.combobox_analistas.configure(state="disabled")
+        self.entry_morosidad.configure(state="disabled")
+        self.checkbox_apoyo.configure(state="disabled")
+        self.checkbox_hoja.configure(state="disabled")
+        self.checkbox_fichero.configure(state="disabled")
+        self.ope_con_mov.configure(state="disabled")
+        self.ope_sin_mov.configure(state="disabled")
+        self.proc_resolucion.configure(state="disabled")
+        self.proc_pre_resolucion.configure(state="disabled")
+        self.proc_liquidacion.configure(state="disabled")
+        self.liquidado.configure(state="disabled")
     
     def habilitar_botones(self):
         self.boton_ejecutar.configure(state="normal")
@@ -34,6 +44,17 @@ class App_DV():
         self.boton_duda.configure(state="normal")
         self.boton_config.configure(state="normal")
         self.combobox_analistas.configure(state="normal")
+        self.entry_morosidad.configure(state="normal")
+        self.checkbox_apoyo.configure(state="normal")
+        self.checkbox_hoja.configure(state="normal")
+        self.checkbox_fichero.configure(state="normal")
+        self.ope_con_mov.configure(state="normal")
+        self.ope_sin_mov.configure(state="normal")
+        self.proc_resolucion.configure(state="normal")
+        self.proc_pre_resolucion.configure(state="normal")
+        if not self.var_apoyo.get():
+            self.proc_liquidacion.configure(state="normal")
+            self.liquidado.configure(state="normal")
     
     def verificar_thread(self, thread):
         if thread.is_alive():
@@ -296,31 +317,31 @@ class App_DV():
         
         self.var_ope_con_mov = BooleanVar()
         self.var_ope_con_mov.set(True)
-        ope_con_mov = CTkCheckBox(
+        self.ope_con_mov = CTkCheckBox(
             frame_estado, text="OP. CON MOVIMIENTO", font=("Calibri",15), border_color="#d11515", 
             border_width=2, fg_color="#d11515", hover_color="#d11515", variable=self.var_ope_con_mov)
-        ope_con_mov.grid(row=1, column=0, padx=(20, 10), pady=(10, 0), sticky="nsew")
+        self.ope_con_mov.grid(row=1, column=0, padx=(20, 10), pady=(10, 0), sticky="nsew")
         
         self.var_ope_sin_mov = BooleanVar()
         self.var_ope_sin_mov.set(True)
-        ope_sin_mov = CTkCheckBox(
+        self.ope_sin_mov = CTkCheckBox(
             frame_estado, text="OP. SIN MOVIMIENTO", font=("Calibri",15), border_color="#d11515", 
             border_width=2, fg_color="#d11515", hover_color="#d11515", variable=self.var_ope_sin_mov)
-        ope_sin_mov.grid(row=1, column=1, padx=(10, 20), pady=(10, 0), sticky="nsew")
+        self.ope_sin_mov.grid(row=1, column=1, padx=(10, 20), pady=(10, 0), sticky="nsew")
         
         self.var_proc_resolucion = BooleanVar()
         self.var_proc_resolucion.set(False)
-        proc_resolucion = CTkCheckBox(
+        self.proc_resolucion = CTkCheckBox(
             frame_estado, text="PROC. RESOLUCION", font=("Calibri",15), border_color="#d11515", 
             border_width=2, fg_color="#d11515", hover_color="#d11515", variable=self.var_proc_resolucion)
-        proc_resolucion.grid(row=2, column=0, padx=(20, 10), pady=(10, 0), sticky="nsew")
+        self.proc_resolucion.grid(row=2, column=0, padx=(20, 10), pady=(10, 0), sticky="nsew")
         
         self.var_proc_pre_resolucion = BooleanVar()
         self.var_proc_pre_resolucion.set(False)
-        proc_pre_resolucion = CTkCheckBox(
+        self.proc_pre_resolucion = CTkCheckBox(
             frame_estado, text="PROC. PRE RESOLUCION", font=("Calibri",15), border_color="#d11515", 
             border_width=2, fg_color="#d11515", hover_color="#d11515", variable=self.var_proc_pre_resolucion)
-        proc_pre_resolucion.grid(row=2, column=1, padx=(10, 20), pady=(10, 0), sticky="nsew")
+        self.proc_pre_resolucion.grid(row=2, column=1, padx=(10, 20), pady=(10, 0), sticky="nsew")
         
         self.var_proc_liquidacion = BooleanVar()
         self.var_proc_liquidacion.set(False)
