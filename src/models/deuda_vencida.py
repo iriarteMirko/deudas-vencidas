@@ -58,7 +58,6 @@ class Class_DV():
             self.df_base = self.df_base[["ACC", "Cuenta", "Demora", "Importe"]]
             self.df_base["Demora"] = self.df_base["Demora"].astype("Int64")
             self.df_base["Importe"] = self.df_base["Importe"].astype(float)
-            self.df_base = self.df_base[self.df_base["Demora"] >= int(dias_morosidad)]
             self.df_base = self.df_base.reset_index(drop=True)
             
             self.df_base = self.df_base[self.df_base["Cuenta"].isin(lista_cartera)]
@@ -67,8 +66,13 @@ class Class_DV():
             self.df_base["Tipo Deuda"] = self.df_base["Demora"].apply(lambda x: "CORRIENTE" if x <= 0 else "VENCIDA")
             self.df_base["Saldo Final"] = self.df_base.apply(lambda row: row["Importe"] 
                                                     if (row["Status"]=="DEUDA" and row["Tipo Deuda"]=="VENCIDA") 
-                                                    else (row["Importe"] if row["Status"]=="SALDOS A FAVOR" else "NO"), 
-                                                    axis=1)
+                                                    else (row["Importe"] if row["Status"]=="SALDOS A FAVOR" else "NO"), axis=1)
+            # Elimina los registros menores a "dias_morosidad" donde la columna "Status" sea "DEUDA" y la columna "Tipo Deuda" sea "VENCIDA"
+            self.df_base = self.df_base[~(
+                (self.df_base["Demora"] < int(dias_morosidad)) & 
+                (self.df_base["Status"] == "DEUDA") & 
+                (self.df_base["Tipo Deuda"] == "VENCIDA"))]
+            
             self.df_base = self.df_base[self.df_base["Saldo Final"] != "NO"]
             self.df_base = self.df_base.sort_values(by=["Cuenta"], ascending=[True])
             self.df_base = self.df_base.sort_values(by=["ACC"], ascending=[True])
@@ -98,7 +102,7 @@ class Class_DV():
                             self.df_base.loc[j, "Saldo Final"] = saldoFavor + montoCompensar
                             saldoDeuda = self.df_base.loc[i, "Saldo Final"]
             
-            self.df_base = self.df_base[(self.df_base["Tipo Deuda"] == "VENCIDA") & (self.df_base["Status"] == "DEUDA")]
+            self.df_base = self.df_base[(self.df_base["Status"] == "DEUDA") & (self.df_base["Tipo Deuda"] == "VENCIDA")]
             self.df_base = self.df_base.reset_index(drop=True)
             grouped_df = self.df_base.groupby(["Cuenta", "ACC"]).agg({"Demora": "max", "Saldo Final": "sum"})
             

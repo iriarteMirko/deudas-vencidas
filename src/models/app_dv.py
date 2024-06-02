@@ -155,6 +155,14 @@ class App_DV():
         
         self.centrar_ventana(self.ventana_config)
     
+    def check_apoyo_state(self, *args):
+        selected_analista = self.var_analista.get()
+        if selected_analista in ["TODOS", "WALTER LOPEZ", "REGION NORTE", "REGION SUR"]:
+            self.var_apoyo.set(False)
+            self.checkbox_apoyo.configure(state="disabled")
+        else:
+            self.checkbox_apoyo.configure(state="normal")
+    
     def crear_app(self):
         self.app = CTk()
         self.app.title("Deudas Vencidas C&CD")
@@ -191,7 +199,7 @@ class App_DV():
             fg_color="transparent", hover_color="#d11515", width=50, command=self.ventana_rutas)
         self.boton_config.pack(padx=(0,5), pady=5, ipadx=0, ipady=5, anchor="center", side="left")
         
-        ############## SELECCIONAR FORMADO ##############
+        ############## SELECCIONAR FORMATO SAP ##############
         frame_checkbox = CTkFrame(main_frame)
         frame_checkbox.pack(padx=10, pady=(10, 0), fill="both", expand=True, anchor="center", side="top")
         
@@ -223,7 +231,7 @@ class App_DV():
         
         analistas = [
             "TODOS", "RAQUEL CAYETANO", "DIEGO RODRIGUEZ", "JOSE LUIS VALVERDE", "JUAN CARLOS HUATAY", 
-            "WALTER LOPEZ", "YOLANDA OLIVA", "REGION NORTE", "REGION SUR"
+            "YOLANDA OLIVA", "WALTER LOPEZ", "REGION NORTE", "REGION SUR"
             ]
         label_analista = CTkLabel(frame_analista, text="Analista Actual: ", font=("Calibri",15,"bold"))
         label_analista.pack(padx=(20, 0), pady=10, fill="both", expand=True, anchor="e", side="left")
@@ -232,6 +240,8 @@ class App_DV():
             frame_analista, values=analistas, font=("Calibri",15), border_color="#d11515", width=200, state="readonly")
         self.combobox_analistas.pack(padx=(0, 20), pady=10, fill="y", expand=True, anchor="w", side="left")
         self.combobox_analistas.set("TODOS")
+        self.var_analista = StringVar(value="TODOS")
+        self.combobox_analistas.configure(variable=self.var_analista)
         
         ############## DIAS DE MOROSIDAD ##############
         frame_morosidad = CTkFrame(main_frame)
@@ -250,12 +260,13 @@ class App_DV():
         
         self.var_apoyo = BooleanVar()
         self.var_apoyo.set(False)
-        # verifica si el combobox NO ES "REGION NORTE" o "REGION SUR" para habilitar el checkbox
-        self.var_apoyo.trace("w", lambda *args: self.var_apoyo.set(False) and apoyo.configure(state="disable") if self.combobox_analistas.get()=="REGION NORTE" or self.combobox_analistas.get()=="REGION SUR" else apoyo.configure(state="normal"))
-        apoyo = CTkCheckBox(
+        self.var_apoyo.trace("w", lambda *args: self.var_fichero_local.set(not self.var_hoja_calculo.get()))
+        self.checkbox_apoyo = CTkCheckBox(
             frame_morosidad, text="APOYOS", font=("Calibri",15), border_color="#d11515", 
             border_width=2, fg_color="#d11515", hover_color="#d11515", variable=self.var_apoyo)
-        apoyo.pack(padx=10, pady=10, anchor="center", side="right")
+        self.checkbox_apoyo.pack(padx=10, pady=10, anchor="center", side="right")
+        self.checkbox_apoyo.configure(state="disabled")
+        self.var_analista.trace_add("write", self.check_apoyo_state)
         
         ############## SELECCIONAR ESTADOS ##############
         frame_estado = CTkFrame(main_frame)
