@@ -20,6 +20,7 @@ def verificar_rutas():
                 "Las siguientes rutas no han sido seleccionadas:" 
                 + "\n("+", ".join(rutas_vacias)+")\n"
                 + "\nPor favor seleccione las rutas faltantes.")
+            return False
         else:
             return rutas_general
     except Exception as ex:

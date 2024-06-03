@@ -78,6 +78,8 @@ class App_DV():
         self.progressbar.start()
         try:
             rutas = verificar_rutas()
+            if rutas == False:
+                return
             reporte = Deudas_Vencidas(rutas)
             reporte.exportar_deudores()
         except Exception as ex:
@@ -90,7 +92,8 @@ class App_DV():
         self.progressbar.start()
         try:
             rutas = verificar_rutas()
-            reporte = Deudas_Vencidas(rutas)
+            if rutas == False:
+                return
             
             analista = self.combobox_analistas.get()
             formato = self.var_fichero_local.get()
@@ -114,7 +117,6 @@ class App_DV():
                 (self.var_proc_resolucion, "PROCESO DE RESOLUCIÓN"),
                 (self.var_liquidado, "LIQUIDADO")
             ]
-            
             lista_estados = [var[1] for var in variables if var[0].get()]
             if len(lista_estados) == 0:
                 messagebox.showerror("Error", "Por favor, seleccione al menos un estado.")
@@ -122,6 +124,7 @@ class App_DV():
             
             apoyo = self.var_apoyo.get()
             
+            reporte = Deudas_Vencidas(rutas)
             reporte.obtener_deudas_vencidas(analista, formato, dias_morosidad, lista_estados, apoyo)
         except Exception as ex:
             messagebox.showerror("Error", str(ex))
