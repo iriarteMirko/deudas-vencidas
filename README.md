@@ -13,9 +13,9 @@ git clone https://github.com/iriarteMirko/deudas-vencidas.git
 # Entra al directorio del proyecto
 cd deudas-vencidas
 
-# Instala las dependencias (si aplica)
+# Instala las dependencias
 pip install -r requirements.txt
 
-# Comando para ejecutar el proyecto
+# Ejecutar el proyecto
 python main.py
 ```
