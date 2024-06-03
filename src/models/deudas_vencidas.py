@@ -11,18 +11,18 @@ class Deudas_Vencidas():
     def __init__(self, rutas):
         fecha_actual = datetime.today().strftime("%d.%m.%Y")
         self.ruta_dacxa = rutas[0]
-        self.celulares = rutas[1]
-        self.ruta_hoja = rutas[2] + "/DEUDAS_VENCIDAS_HOJA.xlsx"
-        self.ruta_fichero = rutas[2] + "/DEUDAS_VENCIDAS_FICHERO.xlsx"
-        self.sap = rutas[2] + "/SAP.xlsx"
-        self.ruta_vacaciones = rutas[3] + "/VACACIONES.xlsx"
-        self.ruta_apoyos = rutas[3] + "/APOYOS_CCD.xlsx"
+        self.ruta_celulares = rutas[1]
+        self.ruta_hoja = rutas[1] + "/DEUDAS_VENCIDAS_HOJA.xlsx"
+        self.ruta_fichero = rutas[1] + "/DEUDAS_VENCIDAS_FICHERO.xlsx"
+        self.sap = rutas[1] + "/SAP.xlsx"
+        self.ruta_vacaciones = rutas[2] + "/VACACIONES.xlsx"
+        self.ruta_apoyos = rutas[2] + "/APOYOS_CCD.xlsx"
         
-        if not os.path.exists(rutas[2] + "/REPORTE FINAL"):
-            os.makedirs(rutas[2] + "/REPORTE FINAL")
+        if not os.path.exists(rutas[1] + "/REPORTE FINAL"):
+            os.makedirs(rutas[1] + "/REPORTE FINAL")
             
-        self.ruta_final = rutas[2] + "/REPORTE FINAL/DEUDAS_VENCIDAS_" + fecha_actual + ".xlsx"
-        self.ruta_final_apoyos = rutas[2] + "/REPORTE FINAL/DEUDAS_VENCIDAS_APOYOS_" + fecha_actual + ".xlsx"
+        self.ruta_final = rutas[1] + "/REPORTE FINAL/DEUDAS_VENCIDAS_" + fecha_actual + ".xlsx"
+        self.ruta_final_apoyos = rutas[1] + "/REPORTE FINAL/DEUDAS_VENCIDAS_APOYOS_" + fecha_actual + ".xlsx"
     
     def exportar_deudores(self):
         df_dacxanalista = pd.read_excel(self.ruta_dacxa, sheet_name="Base_NUEVA")

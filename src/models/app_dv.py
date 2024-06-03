@@ -43,7 +43,7 @@ class App_DV():
         self.boton_deudores.configure(state="normal")
         self.boton_duda.configure(state="normal")
         self.boton_config.configure(state="normal")
-        self.combobox_analistas.configure(state="normal")
+        self.combobox_analistas.configure(state="readonly")
         self.entry_morosidad.configure(state="normal")
         self.checkbox_hoja.configure(state="normal")
         self.checkbox_fichero.configure(state="normal")
@@ -148,16 +148,10 @@ class App_DV():
         frame_botones1.pack(fill="both", expand=True, padx=10, pady=0)
         
         file_dacxanalista = CTkButton(
-            frame_botones1, text="DacxAnalista", font=("Calibri",12), text_color="black",
+            frame_botones1, text="Nuevo_DACxANALISTA", font=("Calibri",12), text_color="black",
             fg_color="transparent", border_color="black", border_width=2, hover_color="#d11515",
             width=100, corner_radius=25, command=lambda: seleccionar_archivo("DACXANALISTA"))
         file_dacxanalista.pack(fill="both", expand=True, padx=10, pady=10, side="left")
-        
-        file_celulares = CTkButton(
-            frame_botones1, text="Base Celulares", font=("Calibri",12), text_color="black",
-            fg_color="transparent", border_color="black", border_width=2, hover_color="#d11515",
-            width=100, corner_radius=25, command=lambda: seleccionar_archivo("CELULARES"))
-        file_celulares.pack(fill="both", expand=True, padx=(0,10), pady=10, side="left")
         
         titulo2 = CTkLabel(self.ventana_config, text="Seleccionar Carpetas", font=("Calibri",12,"bold"))
         titulo2.pack(fill="both", expand=True, padx=10, pady=0)
